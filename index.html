@@ -85,10 +85,23 @@
     @media print{body{background:white!important}header,.wrap,.modal-overlay{display:none!important}
       #printArea{display:block!important;border:0;border-radius:0;padding:0;font-family:Vazirmatn,"Segoe UI",Tahoma,Arial,sans-serif;font-size:10pt;line-height:1.7}
       #printArea h2{font-size:12pt}#printArea th,#printArea td{padding:7px}}
+
+/* PEJVAK v1.4 — uploaded offline signatures and remote-sign link */
+.sig-tools-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.sig-tools-row button{flex:1 1 185px}
+#sigUploadOverlay{z-index:72}
+.sig-upload-note{font-size:12px;color:#5a6c7e;line-height:1.8}
+.sig-canvas-preview{display:block;max-width:100%;width:100%;height:150px;object-fit:contain;background-color:#fff;background-image:linear-gradient(45deg,#f2f5f9 25%,transparent 25%),linear-gradient(-45deg,#f2f5f9 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f2f5f9 75%),linear-gradient(-45deg,transparent 75%,#f2f5f9 75%);background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0;border:1px solid #cbd7e3;border-radius:12px}
+.sig-crop-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 15px}
+.sig-crop-grid label{display:flex;align-items:center;gap:10px;margin:3px 0;font-size:11px}
+.sig-crop-grid input{min-width:0;padding:0}
+#sigUploadPreviewLabel{margin:6px 0 12px}
+@media(max-width:420px){.sig-crop-grid{grid-template-columns:1fr}.sig-tools-row button{flex:1 1 100%}}
+
   </style>
 </head>
 <body>
-<header><div class="brand"><img src="logo.png" alt="لوگوی داده گستران پژواک آریا"><div><h1>مدیریت صورتجلسات</h1><small>PEJVAK Minutes · وب و آفلاین · اطلاعات فقط روی این دستگاه</small></div></div></header>
+<header><div class="brand"><img src="logo.png" alt="لوگوی داده گستران پژواک آریا"><div><h1>مدیریت صورتجلسات</h1><small>PEJVAK Minutes · وب و آفلاین · امضای غیرحضوری</small></div></div></header>
 <main class="wrap">
   <nav class="actions" aria-label="بخش‌های برنامه">
     <button class="secondary" type="button" onclick="show('dashboard')">داشبورد</button>
@@ -124,6 +137,9 @@
     <div class="card"><h2>امضای دست‌نویس حاضران</h2>
       <p class="muted">افراد از فهرست حاضران اضافه می‌شوند. روی «امضا» بزنید تا صفحه سفید ترسیم باز شود؛ امضا در خروجی PDF همین جلسه قرار می‌گیرد.</p>
       <div id="signers"></div>
+      <div class="sig-tools-row"><button type="button" class="secondary" onclick="shareSignatureLink()">🔗 اشتراک‌گذاری لینک امضای غیرحضوری</button></div>
+      <p class="muted">شخص می‌تواند در صفحه اختصاصی PEJVAK Sign با انگشت امضا کند و فایل تأییدیه را برایتان بفرستد؛ سپس فایل را در بخش امضای همان شخص بارگذاری کنید. این فرایند هیچ همگام‌سازی خودکاری ندارد.</p>
+
       <button type="button" class="secondary" onclick="addCustomSigner()">+ افزودن امضاکننده دیگر</button>
       <p class="muted">هر فرد می‌تواند «امضا شده»، «تأیید بدون امضا» یا «در انتظار تأیید» باشد. تأیید صرفاً با ثبت روش آن مشخص می‌شود.</p>
       <p class="muted">این امضای تصویری دست‌نویس است، نه امضای دیجیتال دارای گواهی رسمی.</p>
@@ -148,6 +164,43 @@
   <section id="backup" class="hidden"><div class="card"><h2>پشتیبان‌گیری و بازیابی</h2><p>جلسات، اعضا، امضاها و پیش‌نویس فقط در حافظه همین مرورگر یا دستگاه ذخیره می‌شوند؛ بین کامپیوتر و گوشی خودکار همگام نمی‌شوند. برای انتقال از فایل پشتیبان JSON استفاده کن. پاک‌کردن داده‌های مرورگر می‌تواند اطلاعات را حذف کند؛ نسخه پشتیبان را در جای امن نگهداری کن.</p><div class="actions"><button type="button" onclick="backup()">دریافت پشتیبان JSON</button><button type="button" class="secondary" onclick="chooseRestore()">بازیابی پشتیبان</button></div><input class="hidden" id="restore" type="file" accept="application/json" onchange="restoreFile(event)"></div></section>
 </main>
 <div id="printArea"></div>
+
+
+<div id="sigUploadOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="بارگذاری تصویر یا فایل امضا">
+  <section class="modal">
+    <div class="row"><h2 style="flex:1">بارگذاری امضای دریافتی</h2><button type="button" class="secondary" onclick="closeSigUpload()">×</button></div>
+    <div class="muted" id="sigUploadWho"></div>
+    <p class="sig-upload-note">تصویر PNG/JPG/WebP یا فایل تأییدیه PEJVAK Sign را انتخاب کنید. امضا فقط به همین شخص و همین صورتجلسه افزوده می‌شود.</p>
+    <button class="secondary" type="button" onclick="chooseSigUploadFile()">📎 انتخاب تصویر یا فایل تأییدیه</button>
+    <input type="file" id="sigUploadFile" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp,.json,.pejvaksign.json,application/json" class="hidden" onchange="sigUploadFileChanged(event)">
+    <div class="muted" id="sigUploadPreviewLabel">هنوز فایلی انتخاب نشده است.</div>
+    <canvas id="sigUploadCanvas" width="900" height="330" class="sig-canvas-preview" aria-label="پیش‌نمایش تصویر امضا"></canvas>
+    <div id="sigCropSection" class="hidden"><div class="row"><strong style="font-size:12px">تنظیم برش حاشیه‌ها</strong><button class="secondary" style="padding:6px 10px;font-size:11px" type="button" onclick="resetSigCrop()">بازنشانی برش</button></div>
+      <div class="sig-crop-grid">
+        <label>راست <input type="range" min="0" max="40" step="1" value="0" id="sigCropRight" oninput="paintSigPreview()"></label>
+        <label>چپ <input type="range" min="0" max="40" step="1" value="0" id="sigCropLeft" oninput="paintSigPreview()"></label>
+        <label>بالا <input type="range" min="0" max="40" step="1" value="0" id="sigCropTop" oninput="paintSigPreview()"></label>
+        <label>پایین <input type="range" min="0" max="40" step="1" value="0" id="sigCropBottom" oninput="paintSigPreview()"></label>
+      </div>
+      <label style="display:flex;align-items:center;gap:9px"><input type="checkbox" id="sigRemoveWhite" style="width:auto" onchange="paintSigPreview()"> حذف پس‌زمینه سفید (اختیاری؛ ابتدا پیش‌نمایش را بررسی کنید)</label>
+    </div>
+    <label for="sigReceiveMethod">روش دریافت امضا</label><select id="sigReceiveMethod"><option value="واتساپ">واتساپ</option><option value="تلگرام">تلگرام</option><option value="ایمیل">ایمیل</option><option value="حضوری">حضوری</option><option value="سایر">سایر</option></select>
+    <label for="sigReceiveDate">تاریخ تأیید (شمسی)</label><div class="date-control"><input id="sigReceiveDate" readonly inputmode="none" onclick="openCalendar('sigReceiveDate')" placeholder="انتخاب تاریخ از تقویم"></div>
+    <label for="sigReceiveNote">توضیحات یا مرجع تأیید (اختیاری)</label><textarea id="sigReceiveNote" placeholder="مثلاً: فایل از شماره کاری شخص در واتساپ دریافت شد."></textarea>
+    <label style="display:flex;align-items:flex-start;gap:9px"><input type="checkbox" id="sigReceiveConsent" style="width:auto;margin-top:7px"> تأیید می‌کنم شخص این نسخه از صورتجلسه را دیده و اجازه درج این امضا را داده است.</label>
+    <p class="sig-upload-note">فایل دریافتی هویت شخص یا اعتبار حقوقی امضا را به‌تنهایی اثبات نمی‌کند. محتوا و منبع تأیید را خودتان بررسی کنید.</p>
+    <div class="modal-buttons"><button type="button" class="secondary" onclick="closeSigUpload()">انصراف</button><button type="button" class="gold" onclick="saveUploadedSignature()">ثبت امضای دریافتی</button></div>
+  </section>
+</div>
+
+<div id="signLinkOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="لینک صفحه امضای غیرحضوری">
+  <section class="modal"><h2>لینک صفحه PEJVAK Sign</h2>
+    <p class="muted">این صفحه عمومی فقط امکان امضا و دریافت فایل را دارد؛ صورتجلسات محرمانه روی آن منتشر نمی‌شوند. PDF را جداگانه برای شخص بفرستید.</p>
+    <label for="signPageLink">آدرس صفحه امضا</label><input id="signPageLink" dir="ltr" placeholder="https://.../sign.html" style="direction:ltr;text-align:left">
+    <p class="muted">در نسخه وب، آدرس از GitHub Pages به‌صورت خودکار ساخته می‌شود. در اپ اندروید آدرس صفحه منتشرشده را یک‌بار وارد کنید.</p>
+    <div class="modal-buttons"><button type="button" class="secondary" onclick="closeSignLink()">بستن</button><button type="button" class="secondary" onclick="copySignLink()">کپی لینک</button><button type="button" class="gold" onclick="sendSignLink()">اشتراک‌گذاری</button></div>
+  </section>
+</div>
 
 <div id="taskOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="ثبت مصوبه">
   <section class="modal"><div class="row"><h2 id="taskModalTitle" style="flex:1">ثبت مصوبه جدید</h2><button type="button" class="secondary" onclick="closeTaskModal()" aria-label="بستن">×</button></div>
@@ -378,7 +431,8 @@ function renderSigners(){
     const controls=document.createElement('div');controls.className='inline-controls';
     const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent=signed?'ویرایش امضا':'✍ ثبت امضا';button.onclick=()=>openSignature(person);
     const approve=document.createElement('button');approve.type='button';approve.className='outline';approve.textContent='وضعیت تأیید';approve.onclick=()=>openApprovalModal(person);
-    controls.append(button,approve);
+    const upload=document.createElement('button');upload.type='button';upload.className='secondary';upload.textContent='📎 بارگذاری امضا';upload.onclick=()=>openSigUpload(person);
+    controls.append(button,upload,approve);
     if(signed&&/^data:image\/png;base64,/.test(signed)){const thumb=document.createElement('img');thumb.className='sig-thumb';thumb.src=signed;thumb.alt='امضای ثبت‌شده';item.append(thumb)}
     item.append(details,controls);
     if(person.key.startsWith('custom:')){const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='×';del.onclick=()=>{if(confirm('این امضاکننده حذف شود؟')){delete signatures[person.key];renderSigners();scheduleDraftSave()}};item.append(del)}
@@ -441,16 +495,153 @@ function confirmSignature(){
   if(!signaturePerson)return;
   if(!canvasHasInk){alert('ابتدا در کادر سفید امضا کنید');return}
   const p=signaturePerson;
-  signatures[p.key]={...signatures[p.key],name:p.name,role:p.role,image:canvas.toDataURL('image/png'),signedAt:new Date().toISOString(),approvalStatus:'signed',approvalMethod:'',approvalNote:'',approvedAt:new Date().toISOString()};
+  signatures[p.key]={...signatures[p.key],name:p.name,role:p.role,image:canvas.toDataURL('image/png'),signedAt:new Date().toISOString(),approvalStatus:'signed',approvalMethod:'',approvalNote:'',approvedAt:new Date().toISOString(),signatureSource:'',receivedVia:'',receivedAt:'',consentRecorded:false,documentVersion:'',remoteSignerName:'',remoteMeetingNumber:'',approvalDate:''};
   closeSignature();renderSigners();scheduleDraftSave();
 }
 function removeSignature(){
   if(!signaturePerson)return;
   if(!confirm('امضای این فرد حذف شود؟'))return;
   const prev=signatures[signaturePerson.key];
-  signatures[signaturePerson.key]={...prev,name:signaturePerson.name,role:signaturePerson.role,image:'',signedAt:'',approvalStatus:'pending',approvedAt:''};
+  signatures[signaturePerson.key]={...prev,name:signaturePerson.name,role:signaturePerson.role,image:'',signedAt:'',approvalStatus:'pending',approvedAt:'',signatureSource:'',receivedVia:'',receivedAt:'',consentRecorded:false,documentVersion:'',remoteSignerName:'',remoteMeetingNumber:'',approvalDate:''};
   closeSignature();renderSigners();scheduleDraftSave();
 }
+
+// v1.4: keep all signature evidence and meeting text in the same local data store.
+let sigUploadPerson=null, sigSourceImage=null, sigSourceMeta=null;
+const sigCanvas=el('sigUploadCanvas'),sigCtx=sigCanvas.getContext('2d',{willReadFrequently:true});
+const SIG_MAX_BYTES=8*1024*1024;
+const SIG_DATA_PATTERN=/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+function shareSignatureLink(){
+  const stored=localStorage.getItem('pejvak_signpage_url_v14')||'';
+  let url=stored;
+  if(!url && /^https?:$/.test(location.protocol)) url=new URL('sign.html',location.href).href;
+  el('signPageLink').value=url;el('signLinkOverlay').classList.remove('hidden');
+}
+function closeSignLink(){el('signLinkOverlay').classList.add('hidden')}
+function validateSignLink(){
+  let u;try{u=new URL(el('signPageLink').value.trim())}catch(e){alert('آدرس صفحه امضا معتبر نیست');return null}
+  if(u.protocol!=='https:' && !(u.protocol==='http:'&&/^(localhost|127\.0\.0\.1)$/.test(u.hostname))){alert('صفحه امضا باید با HTTPS منتشر شده باشد');return null}
+  if(!u.pathname.endsWith('/sign.html')){alert('آدرس باید به فایل sign.html ختم شود');return null}
+  // No private meeting contents in shared URL.
+  u.search='';u.hash='';localStorage.setItem('pejvak_signpage_url_v14',u.href);return u.href;
+}
+async function copySignLink(){
+  const url=validateSignLink();if(!url)return;
+  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(url)}else{window.prompt('لینک را کپی کنید:',url);return}alert('لینک کپی شد')}catch(e){window.prompt('لینک را کپی کنید:',url)}
+}
+async function sendSignLink(){
+  const url=validateSignLink();if(!url)return;
+  if(window.PejvakAndroid&&typeof window.PejvakAndroid.shareText==='function'){window.PejvakAndroid.shareText('لینک امضای صورتجلسه PEJVAK: '+url);return}
+  try{if(navigator.share){await navigator.share({title:'PEJVAK Sign',text:'لینک امضای صورتجلسه',url});return}}catch(e){if(e.name==='AbortError')return}
+  copySignLink();
+}
+function openSigUpload(person){
+  sigUploadPerson=person;sigSourceImage=null;sigSourceMeta=null;
+  el('sigUploadWho').textContent=person.name+' — '+person.role;
+  el('sigUploadPreviewLabel').textContent='هنوز فایلی انتخاب نشده است.';
+  el('sigUploadFile').value='';el('sigReceiveMethod').value='واتساپ';el('sigReceiveDate').value=todayJalali();
+  el('sigReceiveNote').value='';el('sigReceiveConsent').checked=false;
+  el('sigCropSection').classList.add('hidden');resetSigCrop(false);
+  sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+  el('sigUploadOverlay').classList.remove('hidden');
+}
+function closeSigUpload(){el('sigUploadOverlay').classList.add('hidden');sigUploadPerson=null;sigSourceImage=null;sigSourceMeta=null}
+function chooseSigUploadFile(){
+  if(window.PejvakAndroid&&typeof window.PejvakAndroid.openSignaturePicker==='function'){
+    window.PejvakAndroid.openSignaturePicker();
+  }else el('sigUploadFile').click();
+}
+async function sigUploadFileChanged(e){
+  const file=e.target.files?.[0];if(!file)return;
+  if(file.size>SIG_MAX_BYTES){alert('حجم فایل نباید بیشتر از ۸ مگابایت باشد');return}
+  try{await processSigBytes(new Uint8Array(await file.arrayBuffer()),file.name,file.type)}
+  catch(err){alert('خواندن فایل ناموفق بود: '+err.message)}finally{e.target.value=''}
+}
+let nativeSigEncoded=null,nativeSigFilename='',nativeSigMime='';
+window.pejvakNativeSignatureStart=function(filename,mime){nativeSigEncoded='';nativeSigFilename=filename||'';nativeSigMime=mime||''};
+window.pejvakNativeSignatureChunk=function(chunk){if(nativeSigEncoded!==null)nativeSigEncoded+=chunk};
+window.pejvakNativeSignatureFinish=async function(){
+  const text=nativeSigEncoded;nativeSigEncoded=null;
+  if(!text){alert('فایل انتخاب‌شده خالی است');return}
+  try{const binary=atob(text),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);await processSigBytes(bytes,nativeSigFilename,nativeSigMime)}
+  catch(err){alert('خواندن فایل امضا ناموفق بود: '+err.message)}
+};
+window.pejvakNativeSignatureError=function(message){nativeSigEncoded=null;alert('خطا در باز کردن امضا: '+message)};
+async function processSigBytes(bytes,filename,mime){
+  if(!sigUploadPerson)return;
+  // Never leave a previously selected image active after a failed replacement.
+  sigSourceImage=null;sigSourceMeta=null;
+  el('sigUploadPreviewLabel').textContent='در حال بررسی فایل...';
+  sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);el('sigCropSection').classList.add('hidden');
+  if(!bytes.length||bytes.length>SIG_MAX_BYTES)throw Error('فایل خالی یا بیش از حد بزرگ است');
+  const lower=String(filename||'').toLowerCase();
+  const jsonFile=lower.endsWith('.json')||mime==='application/json'||(bytes[0]===123);
+  let dataUri='',meta=null;
+  if(jsonFile){
+    const obj=JSON.parse(new TextDecoder('utf-8').decode(bytes));
+    if(obj.format!=='pejvak-signature'||obj.version!==1||obj.consent!==true||!SIG_DATA_PATTERN.test(obj.image||''))throw Error('فرمت فایل تأییدیه PEJVAK Sign معتبر نیست');
+    if(obj.image.length>5_800_000)throw Error('تصویر امضا بیش از حد بزرگ است');
+    dataUri=obj.image;meta=obj;
+    const expected=ascii(el('number').value.trim()),declared=ascii(obj.meetingNumber||'');
+    if(expected&&declared&&expected!==declared){if(!confirm('شماره جلسه در فایل ('+declared+') با شماره فعلی ('+expected+') متفاوت است. مطمئن هستید فایل متعلق به این جلسه است؟'))return}
+    if(obj.signerName&&normalName(obj.signerName)!==normalName(sigUploadPerson.name)){
+      if(!confirm('نام فایل ('+obj.signerName+') با نام شخص انتخاب‌شده ('+sigUploadPerson.name+') متفاوت است. ادامه می‌دهید؟'))return;
+    }
+    el('sigReceiveNote').value='فایل PEJVAK Sign'+(obj.documentVersion?'، نسخه سند: '+obj.documentVersion:'')+(obj.signedAt?'، تاریخ فایل: '+obj.signedAt:'');
+  }else{
+    const png=bytes[0]===0x89&&bytes[1]===0x50&&bytes[2]===0x4e&&bytes[3]===0x47;
+    const jpeg=bytes[0]===0xff&&bytes[1]===0xd8;
+    const webp=bytes[0]===0x52&&bytes[1]===0x49&&bytes[2]===0x46&&bytes[3]===0x46&&bytes[8]===0x57&&bytes[9]===0x45&&bytes[10]===0x42&&bytes[11]===0x50;
+    const type=png?'image/png':jpeg?'image/jpeg':webp?'image/webp':null;
+    if(!type)throw Error('فقط PNG، JPG، WebP یا تأییدیه JSON پشتیبانی می‌شود');
+    let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+    dataUri='data:'+type+';base64,'+btoa(binary);
+  }
+  const image=new Image();
+  await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(Error('تصویر امضا قابل بازکردن نیست'));image.src=dataUri});
+  if(!image.naturalWidth||!image.naturalHeight||image.naturalWidth*image.naturalHeight>25_000_000)throw Error('ابعاد تصویر مجاز نیست');
+  sigSourceImage=image;sigSourceMeta=meta;resetSigCrop(false);
+  el('sigCropSection').classList.remove('hidden');
+  el('sigUploadPreviewLabel').textContent=(meta?'فایل امضای PEJVAK Sign: ':'تصویر امضا: ')+(filename||'انتخاب‌شده');
+  paintSigPreview();
+}
+function resetSigCrop(repaint=true){['Right','Left','Top','Bottom'].forEach(k=>el('sigCrop'+k).value='0');el('sigRemoveWhite').checked=false;if(repaint)paintSigPreview()}
+function paintSigPreview(){
+  sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+  if(!sigSourceImage)return;
+  const image=sigSourceImage;
+  const left=Number(el('sigCropLeft').value)/100,right=Number(el('sigCropRight').value)/100;
+  const top=Number(el('sigCropTop').value)/100,bottom=Number(el('sigCropBottom').value)/100;
+  const sx=Math.floor(image.naturalWidth*left),sy=Math.floor(image.naturalHeight*top);
+  const sw=Math.max(1,Math.floor(image.naturalWidth*(1-left-right))),sh=Math.max(1,Math.floor(image.naturalHeight*(1-top-bottom)));
+  const ratio=Math.min((sigCanvas.width-24)/sw,(sigCanvas.height-24)/sh);
+  const dw=Math.max(1,Math.floor(sw*ratio)),dh=Math.max(1,Math.floor(sh*ratio));
+  sigCtx.drawImage(image,sx,sy,sw,sh,(sigCanvas.width-dw)/2,(sigCanvas.height-dh)/2,dw,dh);
+  if(el('sigRemoveWhite').checked){
+    const pixels=sigCtx.getImageData(0,0,sigCanvas.width,sigCanvas.height);const a=pixels.data;
+    // Soften only near-white pixels, preserving darker lines. This is deliberately optional.
+    for(let i=0;i<a.length;i+=4){if(a[i+3]===0)continue;const v=Math.min(a[i],a[i+1],a[i+2]);if(v>=245)a[i+3]=0;else if(v>215)a[i+3]=Math.round(a[i+3]*(245-v)/30)}
+    sigCtx.putImageData(pixels,0,0);
+  }
+}
+function saveUploadedSignature(){
+  if(!sigUploadPerson||!sigSourceImage){alert('ابتدا فایل امضا را انتخاب کنید');return}
+  if(!el('sigReceiveConsent').checked){alert('پیش از ثبت، مجوز استفاده از امضا و تأیید نسخه صورتجلسه را بررسی و تأیید کنید');return}
+  if(!el('sigReceiveDate').value){alert('تاریخ تأیید را انتخاب کنید');return}
+  const p=sigUploadPerson;
+  const image=sigCanvas.toDataURL('image/png');
+  if(image.length>4_500_000){alert('حجم تصویر نهایی زیاد است. برش بیشتری انجام دهید.');return}
+  const now=new Date().toISOString();
+  const old=signatures[p.key]||{};
+  signatures[p.key]={...old,name:p.name,role:p.role,image,signedAt:sigSourceMeta?.signedAt||now,
+     approvedAt:now,approvalStatus:'signed',approvalMethod:'دریافت امضای غیرحضوری',approvalNote:el('sigReceiveNote').value.trim(),
+     approvalDate:el('sigReceiveDate').value,signatureSource:sigSourceMeta?'pejvak-signature-file':'uploaded-image',
+     receivedVia:el('sigReceiveMethod').value,receivedAt:now,consentRecorded:true,
+     documentVersion:sigSourceMeta?.documentVersion||'',remoteSignerName:sigSourceMeta?.signerName||'',
+     remoteMeetingNumber:sigSourceMeta?.meetingNumber||''};
+  closeSigUpload();renderSigners();scheduleDraftSave();alert('امضای دریافتی در این صورتجلسه ثبت شد. برای حفظ دائمی، صورتجلسه را ذخیره کنید.');
+}
+
 function gather(){const d={};ids.forEach(id=>d[id]=el(id).value.trim());d.tasks=tasks.filter(t=>t.text).map(t=>({...t}));d.signatures=JSON.parse(JSON.stringify(signatures));return d}
 function setSaveStatus(message){el('autosaveStatus').textContent=message}
 function inProgressTask(){
@@ -570,7 +761,7 @@ function documentMarkup(d){
     const entry=signatures[p.key]||{},img=entry.image;
     const src=typeof img==='string'&&/^data:image\/png;base64,[a-zA-Z0-9+/=]+$/.test(img)?img:'';
     let status='در انتظار تأیید';
-    if(src)status='تأیید با امضای دست‌نویس';
+    if(src)status=entry.signatureSource?('تأیید با امضای دریافتی — منبع: '+esc(entry.receivedVia||'نامشخص')+' — تاریخ: '+esc(fa(entry.approvalDate||'نامشخص'))+' — بارگذاری‌شده توسط تنظیم‌کننده'):'تأیید با امضای دست‌نویس';
     else if(entry.approvalStatus==='approved')status='تأیید بدون امضا — '+esc(entry.approvalMethod||'روش نامشخص')+(entry.approvalDate?' — '+esc(fa(entry.approvalDate)):'')+(entry.approvalNote?' — '+esc(entry.approvalNote):'');
     return `<div class="print-sign"><strong>${esc(p.name)}</strong> <span style="font-size:9px;color:#536a80">(${esc(p.role)})</span><div style="font-size:10px;color:#3d596e;margin-top:5px">${status}</div>${src?`<img src="${src}" alt="امضای ثبت‌شده">`:entry.approvalStatus==='approved'?'':'<div class="sign-dotted"></div>'}</div>`;
   }).join('');
@@ -653,6 +844,8 @@ window.pejvakNativeRestoreError=function(message){
 };
 window.addEventListener('keydown',e=>{if(e.key==='Escape'){
   if(!el('calendarOverlay').classList.contains('hidden'))closeCalendar();
+  else if(!el('sigUploadOverlay').classList.contains('hidden'))closeSigUpload();
+  else if(!el('signLinkOverlay').classList.contains('hidden'))closeSignLink();
   else if(!el('previewOverlay').classList.contains('hidden'))closePreview();
   else if(!el('approvalOverlay').classList.contains('hidden'))closeApprovalModal();
   else if(!el('memberOverlay').classList.contains('hidden'))closeMemberModal();

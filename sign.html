@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PEJVAK Sign | امضای غیرحضوری صورتجلسه</title><meta name="theme-color" content="#073765">
+<style>
+:root{font-family:Vazirmatn,"Segoe UI",Tahoma,Arial,sans-serif;color:#183550;background:#f3f7fb}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(130deg,#f5f9fc,#eaf2fb);line-height:1.8}header{background:#073765;color:#fff;padding:17px 15px}header>div{display:flex;align-items:center;gap:14px;max-width:790px;margin:auto}header img{width:105px;max-width:30vw;background:white;padding:7px;border-radius:12px}h1{font-size:21px;margin:0}header small{font-size:12px;opacity:.83}main{max-width:790px;margin:auto;padding:20px 13px 48px}.card{background:white;border:1px solid #dce6ef;border-radius:19px;padding:21px;margin-bottom:17px;box-shadow:0 10px 25px #092e5010}.tag{background:#fef4d6;color:#684c04;font-size:11px;border-radius:30px;padding:4px 10px;display:inline-block;margin-bottom:10px}label{display:block;font-size:13px;font-weight:700;margin:11px 0 5px}input:not([type=checkbox]){width:100%;padding:11px 13px;border:1px solid #d9e4ed;border-radius:12px;font:inherit;font-size:14px}button{cursor:pointer;border:0;border-radius:11px;background:#073765;color:#fff;padding:11px 17px;font:inherit;font-weight:700}button.secondary{background:#e9f0f7;color:#073765}.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.muted{font-size:12px;color:#617a92}.space{margin:12px 0}canvas{display:block;width:100%;height:260px;min-height:220px;background:#fff;border:2px dashed #a8bdd0;border-radius:13px;touch-action:none;cursor:crosshair}.actions{display:flex;gap:9px;flex-wrap:wrap}.actions button{flex:1 1 165px}.check{display:flex;align-items:flex-start;gap:10px;font-size:13px;margin:17px 0}.check input{margin-top:9px;width:auto}.privacy{border-right:4px solid #ffc247;padding:9px 12px;background:#f7fafc;font-size:12px;border-radius:6px}.preview{display:none;margin-top:15px;padding:12px;border-radius:12px;background:#f8fbff;border:1px solid #e1e8f0}.preview img{width:100%;height:120px;object-fit:contain}.success{color:#185f3a;font-weight:700}@media(max-width:510px){.cols{grid-template-columns:1fr}.card{padding:16px}h1{font-size:19px}canvas{height:230px}}@media print{header,.actions,.privacy{display:none}}
+</style></head><body><header><div><img src="logo.png" alt="لوگوی پژواک"><div><h1>PEJVAK Sign</h1><small>امضای غیرحضوری صورتجلسات داده گستران پژواک آریا</small></div></div></header>
+<main><section class="card"><span class="tag">بدون نصب برنامه و بدون ثبت‌نام</span><h2 style="margin:0 0 9px;font-size:18px">تأیید و ارسال امضا</h2>
+<p class="muted">قبل از امضا، PDF صورتجلسه‌ای را که جداگانه دریافت کرده‌اید مطالعه کنید. این صفحه متن صورتجلسه را از جایی دریافت نمی‌کند و اطلاعات را به سرور ارسال نمی‌کند.</p>
+<div class="cols"><div><label for="fullName">نام و نام خانوادگی *</label><input id="fullName" autocomplete="name" placeholder="نام امضاکننده"></div><div><label for="role">سمت (اختیاری)</label><input id="role" placeholder="مدیر پروژه"></div></div>
+<div class="cols"><div><label for="meetingNo">شماره صورتجلسه *</label><input id="meetingNo" placeholder="مثلاً MM-001"></div><div><label for="docVersion">شناسه نسخه سند (اختیاری)</label><input id="docVersion" placeholder="مثلاً v2 یا تاریخ PDF"></div></div>
+<label>با انگشت یا قلم در کادر سفید امضا کنید *</label><canvas id="pad" width="900" height="330" aria-label="کادر کشیدن امضا"></canvas>
+<div class="actions space"><button class="secondary" type="button" onclick="clearPad()">پاک‌کردن امضا</button></div>
+<label class="check"><input id="consent" type="checkbox"> نسخه صورتجلسه با شماره بالا را مطالعه کرده‌ام و با ثبت و ارسال تصویر امضایم برای همان نسخه موافقم.</label>
+<div class="actions"><button type="button" onclick="downloadPackage()">دریافت فایل تأییدیه</button><button type="button" onclick="sharePackage()">اشتراک‌گذاری فایل تأییدیه</button><button type="button" class="secondary" onclick="downloadPng()">دریافت تصویر PNG</button></div>
+<div id="result" class="preview"><p class="success">فایل ساخته شد. آن را برای تنظیم‌کننده صورتجلسه بفرستید.</p><img id="signatureOutput" alt="امضای ترسیم‌شده"></div>
+<p class="privacy">توجه: ثبت این امضا به‌تنهایی هویت شما را احراز نمی‌کند یا امضای الکترونیکی گواهی‌شده محسوب نمی‌شود. تاریخ و زمان از ساعت دستگاه شما گرفته می‌شود و قابل تأیید مستقل نیست. فایل تا زمانی که خودتان ارسال نکنید، به شخص دیگری منتقل نمی‌شود.</p>
+</section></main>
+<script>
+'use strict';
+const el=id=>document.getElementById(id);const pad=el('pad'),ctx=pad.getContext('2d');
+let drawing=false,ink=false,last=null;
+function point(e){const r=pad.getBoundingClientRect();return{x:(e.clientX-r.left)*pad.width/r.width,y:(e.clientY-r.top)*pad.height/r.height}}
+function down(e){e.preventDefault();drawing=true;last=point(e);ctx.fillStyle='#073765';ctx.beginPath();ctx.arc(last.x,last.y,2.8,0,Math.PI*2);ctx.fill();ink=true;try{pad.setPointerCapture(e.pointerId)}catch(_){}}
+function move(e){if(!drawing)return;e.preventDefault();const p=point(e);ctx.strokeStyle='#073765';ctx.lineWidth=5.2;ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p}
+function up(e){drawing=false;last=null;try{pad.releasePointerCapture(e.pointerId)}catch(_){}}
+pad.addEventListener('pointerdown',down);pad.addEventListener('pointermove',move);pad.addEventListener('pointerup',up);pad.addEventListener('pointercancel',up);
+function clearPad(){ctx.clearRect(0,0,pad.width,pad.height);ink=false;el('result').style.display='none'}
+function createPayload(){
+  const signerName=el('fullName').value.trim(),meetingNumber=el('meetingNo').value.trim();
+  if(!signerName){alert('نام امضاکننده را وارد کنید');return null}
+  if(!meetingNumber){alert('شماره صورتجلسه را وارد کنید');return null}
+  if(!ink){alert('ابتدا امضای خود را ترسیم کنید');return null}
+  if(!el('consent').checked){alert('لطفاً تأیید مطالعه نسخه صورتجلسه و اجازه استفاده از امضا را مشخص کنید');return null}
+  return {format:'pejvak-signature',version:1,signerName,signerRole:el('role').value.trim(),meetingNumber,documentVersion:el('docVersion').value.trim(),
+    consent:true,consentText:'نسخه صورتجلسه با شماره بالا را مطالعه کرده‌ام و با ثبت و ارسال تصویر امضایم برای همان نسخه موافقم.',
+    signedAt:new Date().toISOString(),image:pad.toDataURL('image/png')};
+}
+function slug(s){return String(s||'meeting').replace(/[^A-Za-z0-9\u0600-\u06FF_-]/g,'_').slice(0,40)||'meeting'}
+function packageFile(data){return new File([JSON.stringify(data,null,2)],'PEJVAK-Sign-'+slug(data.meetingNumber)+'.pejvaksign.json',{type:'application/json'})}
+function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),12000)}
+function showResult(data){el('signatureOutput').src=data.image;el('result').style.display='block'}
+function downloadPackage(){const d=createPayload();if(!d)return;const file=packageFile(d);downloadBlob(file,file.name);showResult(d)}
+async function sharePackage(){
+  const d=createPayload();if(!d)return;const file=packageFile(d);
+  try{if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({title:'PEJVAK Sign',text:'تأییدیه امضای صورتجلسه '+d.meetingNumber,files:[file]});showResult(d);return}}
+  catch(e){if(e.name==='AbortError')return}
+  // Fallback on browsers which cannot share arbitrary files.
+  downloadBlob(file,file.name);showResult(d);alert('اشتراک‌گذاری فایل در این مرورگر پشتیبانی نشد. فایل دانلود شد؛ آن را از پوشه دانلودها برای تنظیم‌کننده بفرستید.');
+}
+function downloadPng(){const d=createPayload();if(!d)return;const bytes=atob(d.image.split(',')[1]),arr=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);downloadBlob(new Blob([arr],{type:'image/png'}),'PEJVAK-Sign-'+slug(d.meetingNumber)+'.png');showResult(d)}
+</script></body></html>
