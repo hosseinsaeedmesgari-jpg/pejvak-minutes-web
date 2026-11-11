@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>PEJVAK Minutes | مدیریت صورتجلسات</title>
+  <meta name="theme-color" content="#073765">
+  <meta name="description" content="مدیریت صورتجلسات شرکت داده گستران پژواک آریا؛ تحت وب و آفلاین با ذخیره محلی">
+  <meta name="application-name" content="PEJVAK Minutes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <style>
+    /* Uses local Vazirmatn if installed; otherwise system fonts for reliable offline use. */
+    :root{--navy:#073765;--navy-dark:#052b50;--gold:#ffc247;--ink:#183550;--muted:#72849a;--border:#dbe5ef;--surface:#fff;--bg:#f3f7fb;font-family:Vazirmatn,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(130deg,#f7fafd,#edf3fa);min-height:100vh;line-height:1.8}
+    button,input,textarea,select{font:inherit}button{cursor:pointer;background:var(--navy);color:white;border:0;border-radius:11px;padding:11px 16px;font-weight:700;line-height:1.6}
+    button:disabled{opacity:.55;cursor:not-allowed}button.secondary{background:#eaf0f7;color:var(--navy)}button.gold{background:var(--gold);color:#17334b}button.danger{background:#fff0f0;color:#a32231}button.outline{border:1px solid var(--border);color:var(--navy);background:white}
+    button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #d7a11f;outline-offset:2px}
+    input,textarea,select{width:100%;background:#fff;border:1px solid var(--border);color:var(--ink);border-radius:11px;padding:11px 13px;font-size:14px}
+    input[readonly]{cursor:pointer;background:#f9fcff}input::placeholder,textarea::placeholder{color:#a0afbf}textarea{resize:vertical;min-height:94px}
+    label{display:block;font-size:13px;font-weight:700;color:#385069;margin:11px 0 5px}
+    header{background:linear-gradient(110deg,#084277,#052b50);border-radius:0 0 24px 24px;color:white;padding:17px 16px;box-shadow:0 8px 26px #092a4a16}
+    .brand{max-width:1100px;margin:auto;display:flex;align-items:center;gap:15px}header img{width:120px;max-width:38vw;background:white;border-radius:12px;padding:7px}header h1{font-size:20px;margin:0 0 2px}header small{font-size:12px;color:#d2e2f0}
+    main.wrap{max-width:1100px;margin:auto;padding:18px 14px 50px}.actions{display:flex;flex-wrap:wrap;gap:9px;margin:2px 0 15px}.actions button{flex:1 1 auto}
+    .card{background:#fff;border:1px solid #e2e9f1;border-radius:18px;padding:19px;margin-bottom:15px;box-shadow:0 6px 22px #10365309}
+    h2{font-size:16px;color:var(--navy);margin:0 0 15px;border-bottom:1px solid #edf1f6;padding-bottom:11px;display:flex;gap:9px;align-items:center}
+    h2:before{content:'';width:5px;height:21px;border-radius:3px;background:var(--gold);display:inline-block}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row{display:flex;gap:10px;align-items:center;justify-content:space-between}.muted{font-size:12px;color:var(--muted)}.hidden{display:none!important}
+    .item{border:1px solid #dfe7ef;border-radius:13px;padding:13px;margin:10px 0;background:#fbfdff}.item .row{align-items:flex-start}.item strong{font-size:14px;overflow-wrap:anywhere}
+    .item p{margin:7px 0;color:#53697e;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+    .item-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.item-actions button{padding:7px 12px;font-size:12px}
+    .pill{display:inline-block;padding:3px 9px;border-radius:14px;font-size:11px;font-weight:bold;background:#eef3f8;color:#3c5973}.pill.progress{background:#e4effd;color:#14588e}.pill.done{background:#e5f7ec;color:#1d7b46}
+    .empty{padding:20px;text-align:center;background:#f7fafc;border-radius:12px;color:var(--muted);font-size:13px}
+    .date-control{position:relative}.date-control input{padding-inline-start:42px}.date-control:after{content:'▦';position:absolute;left:14px;bottom:12px;font-size:20px;color:var(--navy);pointer-events:none}
+    .sig-person{display:flex;gap:12px;align-items:center;justify-content:space-between;background:#fbfdff;padding:12px;border:1px solid #e3ebf2;border-radius:12px;margin:9px 0}
+    .sig-person b{display:block;font-size:13px}.sig-person button{flex-shrink:0;font-size:12px;padding:9px 12px}
+    .sig-thumb{width:82px;height:41px;object-fit:contain;background:white;border:1px solid #e5ebf0;border-radius:6px;margin-inline-start:8px}
+    .modal-overlay{position:fixed;inset:0;background:#031d36aa;z-index:50;display:flex;align-items:center;justify-content:center;padding:12px;overscroll-behavior:contain}
+    .modal{background:white;border-radius:20px;width:min(100%,530px);max-height:calc(100dvh - 24px);overflow:auto;padding:20px;box-shadow:0 20px 70px #00192c42}
+    .modal h2{margin-bottom:7px}.modal-buttons{display:flex;gap:8px;margin-top:18px}.modal-buttons button{flex:1}
+    #calendarOverlay{z-index:80}.calendar-modal{width:min(100%,390px)}.cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 16px}
+    .cal-head button{width:41px;padding:6px 0;background:#eaf0f7;color:var(--navy);font-size:19px}.cal-head strong{font-size:17px}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center;direction:rtl}
+    .cal-grid .weekday{font-size:12px;color:#718198;padding:6px 0}.day{padding:7px 0;background:white;color:#1c3e5b;border-radius:9px;min-width:0;font-weight:500}
+    .day.today{border:1px solid var(--gold)}.day.selected{background:var(--navy);color:#fff}.day.emptyday{visibility:hidden}
+    .cal-actions{display:flex;gap:8px;margin-top:14px}.cal-actions button{flex:1}
+    #signatureOverlay{z-index:65;padding:0;background:#eaf1f8}.signature-modal{border-radius:0;max-height:100dvh;min-height:100dvh;width:100%;max-width:none;display:flex;flex-direction:column;overflow:auto;padding:16px;gap:12px}
+    #signatureCanvas{display:block;width:100%;height:min(52dvh,350px);min-height:210px;background:white;border:1px dashed #9db2c5;border-radius:15px;touch-action:none;cursor:crosshair}
+    .signature-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}.signature-tools button{flex:1;min-width:90px}
+    #printArea{display:none}
+    .dashboard-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+    .stat-card{border-radius:16px;padding:18px;background:linear-gradient(160deg,#fff,#f4f8fc);border:1px solid var(--border)}
+    .stat-card b{display:block;color:var(--navy);font-size:30px;line-height:1.5}.stat-card small{font-size:12px;color:var(--muted)}
+    .nav-current{outline:2px solid #ffc247;outline-offset:1px}
+    .inline-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.inline-controls button{padding:8px 12px;font-size:12px}
+    .inline-controls select{max-width:175px;padding:6px 9px;font-size:12px}
+    .task-meta{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:6px}
+    .pill.overdue{color:#982328;background:#ffeaea}.pill.pending{background:#fff4dc;color:#75500c}
+    .hint{color:var(--muted);font-size:12px}.saved-state{font-size:12px;color:#276444}
+    .member-entry{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .member-entry>div:first-child{flex:1;min-width:0}
+    .doc-page{background:white;color:#132f48;padding:22px;border:1px solid #dbe5ef;border-radius:12px;direction:rtl;font-size:12px;line-height:1.7}
+    .doc-page .phead{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #ffc247;padding:0 0 10px;margin-bottom:12px;gap:10px}
+    .doc-page .phead img{width:145px;max-height:75px;object-fit:contain}.doc-page h1{color:#073765;font-size:21px;margin:0}
+    .doc-page h2{background:#073765!important;color:#fff!important;display:block;font-size:13px;margin:13px 0 7px;padding:7px 9px;border:0;border-radius:4px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+    .doc-page h2:before{display:none}.doc-page p{white-space:pre-wrap;overflow-wrap:anywhere;margin:4px 0 9px}
+    .doc-page table{border-collapse:collapse;width:100%;table-layout:fixed}.doc-page th,.doc-page td{border:1px solid #b7c8d8;padding:7px;text-align:right;vertical-align:top;overflow-wrap:anywhere}
+    .doc-page th{background:#edf3f8!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+    .doc-page .print-sign-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .doc-page .print-sign{border:1px solid #d4e0e9;padding:8px 10px;min-height:91px;break-inside:avoid;border-radius:6px}
+    .doc-page .print-sign img{width:100%;height:68px;object-fit:contain;object-position:right center}
+    .doc-page .sign-dotted{margin-top:34px;border-bottom:1px dashed #9caebb;width:86%}.doc-page tr{break-inside:avoid}
+    #previewOverlay{z-index:75}.preview-modal{max-width:900px;max-height:95dvh}.preview-document{max-height:70dvh;overflow:auto;background:#eff3f9;padding:12px;border-radius:11px}
+    @media(max-width:660px){.dashboard-grid{grid-template-columns:repeat(2,1fr)}.stat-card{padding:12px}.stat-card b{font-size:25px}.doc-page{padding:12px;font-size:10px}.doc-page th,.doc-page td{padding:4px}}
+
+    @media(min-width:840px){#form:not(.hidden){display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}#form>.card{margin:0}#form>.card:nth-child(3),#form>.card:nth-child(4),#form>.card:nth-child(5){grid-column:1/-1}header .brand img{width:160px}header h1{font-size:24px}}
+    @media(max-width:430px){.grid{grid-template-columns:1fr 1fr;gap:8px}.card{padding:15px}.sig-person{gap:7px}.sig-thumb{width:64px}.actions{display:grid;grid-template-columns:1fr 1fr}header img{width:100px}.modal{padding:16px}}
+    @media(max-width:350px){.grid{grid-template-columns:1fr}.actions{grid-template-columns:1fr}}
+    @media(max-width:570px){.sig-person{flex-wrap:wrap}.sig-person .inline-controls{width:100%}.sig-person .inline-controls button{flex:1}}
+    @page{size:A4;margin:12mm}
+    @media print{body{background:white!important}header,.wrap,.modal-overlay{display:none!important}
+      #printArea{display:block!important;border:0;border-radius:0;padding:0;font-family:Vazirmatn,"Segoe UI",Tahoma,Arial,sans-serif;font-size:10pt;line-height:1.7}
+      #printArea h2{font-size:12pt}#printArea th,#printArea td{padding:7px}}
+  </style>
+</head>
+<body>
+<header><div class="brand"><img src="logo.png" alt="لوگوی داده گستران پژواک آریا"><div><h1>مدیریت صورتجلسات</h1><small>PEJVAK Minutes · وب و آفلاین · اطلاعات فقط روی این دستگاه</small></div></div></header>
+<main class="wrap">
+  <nav class="actions" aria-label="بخش‌های برنامه">
+    <button class="secondary" type="button" onclick="show('dashboard')">داشبورد</button>
+    <button class="gold" type="button" onclick="clearForm()">+ جلسه جدید</button>
+    <button class="secondary" type="button" onclick="show('tracking')">پیگیری مصوبات</button>
+    <button class="secondary" type="button" onclick="show('members')">دفترچه اعضا</button>
+    <button class="secondary" type="button" onclick="show('archive')">آرشیو</button>
+    <button class="secondary" type="button" onclick="show('backup')">پشتیبان‌گیری</button>
+  </nav>
+  <section id="dashboard"><div class="card">
+    <div class="row"><h2 style="margin:0;flex:1">داشبورد جلسات</h2><span class="muted">نمای کلی فعالیت‌ها</span></div>
+    <div class="dashboard-grid" id="dashboardStats"></div>
+    <div class="row"><h2 style="margin:0;flex:1">مصوبات نیازمند پیگیری</h2><button class="secondary" type="button" onclick="show('tracking')">همه مصوبات</button></div>
+    <div id="dashboardTasks"></div>
+  </div><div class="card"><h2>جلسات اخیر</h2><div id="dashboardRecent"></div></div></section>
+  <section id="form" class="hidden">
+    <div class="card"><h2>اطلاعات جلسه</h2>
+      <div class="grid"><div><label for="number">شماره جلسه</label><input id="number" placeholder="مثلاً MM-001"></div><div><label for="date">تاریخ شمسی</label><div class="date-control"><input id="date" readonly inputmode="none" placeholder="انتخاب از تقویم" onclick="openCalendar('date')"></div></div></div>
+      <label for="title">عنوان جلسه *</label><input id="title" placeholder="عنوان جلسه را وارد کنید">
+      <div class="grid"><div><label for="start">ساعت شروع</label><input type="time" id="start"></div><div><label for="end">ساعت پایان</label><input type="time" id="end"></div></div>
+      <label for="location">محل برگزاری</label><input id="location" placeholder="دفتر مرکزی / آنلاین">
+      <label for="attendees">حاضران (هر نفر در یک خط)</label><textarea id="attendees" placeholder="مثلاً: علی رضایی - مدیر پروژه" oninput="renderSigners()"></textarea>
+      <div class="inline-controls" style="margin-top:8px"><button class="secondary" type="button" onclick="openMemberPicker()">+ انتخاب از دفترچه اعضا</button><span class="hint">می‌توانید چند نفر را پشت سر هم اضافه کنید.</span></div>
+    </div>
+    <div class="card"><h2>دستور جلسه و مباحث</h2>
+      <label for="agenda">دستور جلسه</label><textarea id="agenda" placeholder="موضوعات مورد بررسی"></textarea>
+      <label for="summary">خلاصه مذاکرات</label><textarea id="summary" placeholder="نکات مهم مطرح‌شده در جلسه"></textarea>
+    </div>
+    <div class="card"><div class="row"><h2 style="flex:1;margin:0">مصوبات و اقدامات</h2><button type="button" onclick="openTaskModal()">+ افزودن مصوبه</button></div>
+      <p class="muted">مصوبات به‌صورت خلاصه نمایش داده می‌شوند. برای ثبت یا ویرایش، پنجره جداگانه باز می‌شود.</p>
+      <div id="tasks"></div>
+    </div>
+    <div class="card"><h2>امضای دست‌نویس حاضران</h2>
+      <p class="muted">افراد از فهرست حاضران اضافه می‌شوند. روی «امضا» بزنید تا صفحه سفید ترسیم باز شود؛ امضا در خروجی PDF همین جلسه قرار می‌گیرد.</p>
+      <div id="signers"></div>
+      <button type="button" class="secondary" onclick="addCustomSigner()">+ افزودن امضاکننده دیگر</button>
+      <p class="muted">هر فرد می‌تواند «امضا شده»، «تأیید بدون امضا» یا «در انتظار تأیید» باشد. تأیید صرفاً با ثبت روش آن مشخص می‌شود.</p>
+      <p class="muted">این امضای تصویری دست‌نویس است، نه امضای دیجیتال دارای گواهی رسمی.</p>
+    </div>
+    <div class="card"><h2>نهایی‌سازی</h2>
+      <label for="next">تاریخ جلسه بعدی</label><div class="date-control"><input id="next" readonly inputmode="none" placeholder="در صورت تعیین، از تقویم انتخاب کنید" onclick="openCalendar('next')"></div>
+      <label for="author">تنظیم‌کننده صورتجلسه</label><input id="author" oninput="renderSigners()" placeholder="نام تنظیم‌کننده">
+      <div class="actions" style="margin-top:16px"><button type="button" onclick="save()">ذخیره صورتجلسه</button><button type="button" class="secondary" onclick="previewDocument()">پیش‌نمایش صورتجلسه</button><button type="button" class="gold" onclick="exportPDF()">خروجی PDF</button><button type="button" class="secondary" onclick="clearForm()">فرم جدید</button></div>
+      <div id="autosaveStatus" class="saved-state" role="status">ذخیره خودکار پیش‌نویس فعال است.</div>
+      <p class="muted">در پنجره چاپ اندروید، «ذخیره به‌صورت PDF / Save as PDF» را انتخاب کنید. برای ماندگاری امضاها ابتدا صورتجلسه را ذخیره کنید.</p>
+    </div>
+  </section>
+  <section id="tracking" class="hidden"><div class="card"><h2>پیگیری مصوبات همه جلسات</h2>
+    <p class="muted">وضعیت هر مصوبه را در همین‌جا تغییر دهید. تغییرات روی صورتجلسه ذخیره‌شده اعمال می‌شود.</p>
+    <label for="taskFilter">فیلتر وضعیت</label><select id="taskFilter" onchange="renderTracking()"><option value="all">همه مصوبات</option><option value="open">انجام‌نشده و در حال انجام</option><option value="late">تأخیردار</option><option value="done">انجام‌شده</option></select><div id="trackingItems"></div>
+  </div></section>
+  <section id="members" class="hidden"><div class="card"><div class="row"><h2 style="flex:1;margin:0">دفترچه اعضای جلسات</h2><button type="button" onclick="openMemberModal()">+ عضو جدید</button></div>
+    <p class="muted">نام، سمت و واحد سازمانی افراد فقط روی همین دستگاه ذخیره می‌شود.</p>
+    <input id="memberSearch" placeholder="جست‌وجو در نام، سمت و واحد" oninput="renderMembers()"><div id="membersList"></div>
+  </div></section>
+  <section id="archive" class="hidden"><div class="card"><h2>آرشیو صورتجلسات</h2><input id="search" placeholder="جست‌وجو در عنوان، تاریخ و شماره جلسات" oninput="renderArchive()"><div id="archiveItems"></div></div></section>
+  <section id="backup" class="hidden"><div class="card"><h2>پشتیبان‌گیری و بازیابی</h2><p>جلسات، اعضا، امضاها و پیش‌نویس فقط در حافظه همین مرورگر یا دستگاه ذخیره می‌شوند؛ بین کامپیوتر و گوشی خودکار همگام نمی‌شوند. برای انتقال از فایل پشتیبان JSON استفاده کن. پاک‌کردن داده‌های مرورگر می‌تواند اطلاعات را حذف کند؛ نسخه پشتیبان را در جای امن نگهداری کن.</p><div class="actions"><button type="button" onclick="backup()">دریافت پشتیبان JSON</button><button type="button" class="secondary" onclick="chooseRestore()">بازیابی پشتیبان</button></div><input class="hidden" id="restore" type="file" accept="application/json" onchange="restoreFile(event)"></div></section>
+</main>
+<div id="printArea"></div>
+
+<div id="taskOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="ثبت مصوبه">
+  <section class="modal"><div class="row"><h2 id="taskModalTitle" style="flex:1">ثبت مصوبه جدید</h2><button type="button" class="secondary" onclick="closeTaskModal()" aria-label="بستن">×</button></div>
+    <label for="taskText">شرح مصوبه *</label><textarea id="taskText" placeholder="شرح تصمیم یا اقدام"></textarea>
+    <label for="taskOwner">مسئول اجرا</label><input id="taskOwner" placeholder="نام مسئول">
+    <div class="grid"><div><label for="taskDeadline">مهلت انجام</label><div class="date-control"><input id="taskDeadline" readonly inputmode="none" placeholder="انتخاب تاریخ شمسی" onclick="openCalendar('taskDeadline')"></div></div>
+      <div><label for="taskStatus">وضعیت</label><select id="taskStatus"><option>انجام‌نشده</option><option>در حال انجام</option><option>انجام‌شده</option></select></div></div>
+    <div class="modal-buttons"><button type="button" class="secondary" onclick="closeTaskModal()">انصراف</button><button type="button" onclick="saveTaskModal()">ثبت مصوبه</button></div>
+  </section>
+</div>
+
+<div id="calendarOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="تقویم شمسی">
+  <section class="modal calendar-modal"><h2>انتخاب تاریخ شمسی</h2><div class="cal-head"><button type="button" aria-label="ماه بعد" onclick="changeCalendarMonth(1)">‹</button><strong id="calendarTitle"></strong><button type="button" aria-label="ماه قبل" onclick="changeCalendarMonth(-1)">›</button></div>
+    <div id="calendarGrid" class="cal-grid"></div>
+    <div class="cal-actions"><button class="secondary" type="button" onclick="clearSelectedDate()">حذف تاریخ</button><button type="button" onclick="pickToday()">امروز</button><button class="secondary" type="button" onclick="closeCalendar()">بستن</button></div>
+  </section>
+</div>
+
+<div id="signatureOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="ترسیم امضا">
+  <section class="modal signature-modal">
+    <div class="row"><div><h2 style="margin-bottom:2px">ثبت امضای دست‌نویس</h2><span id="signatureName" class="muted"></span></div><button type="button" class="secondary" onclick="closeSignature()">× بستن</button></div>
+    <p class="muted">با انگشت یا قلم روی کادر سفید امضا کنید. برای راحتی بیشتر می‌توانید گوشی را افقی نگه دارید.</p>
+    <canvas id="signatureCanvas" width="900" height="300" aria-label="کادر ترسیم امضا"></canvas>
+    <div class="signature-tools"><button type="button" class="secondary" onclick="clearCanvas()">پاک‌کردن صفحه</button><button type="button" class="danger" onclick="removeSignature()">حذف امضای قبلی</button><button type="button" class="gold" onclick="confirmSignature()">✓ تأیید و ثبت امضا</button></div>
+  </section>
+</div>
+<div id="approvalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="وضعیت تأیید">
+  <section class="modal"><div class="row"><h2 style="flex:1" id="approvalPersonName">تأیید صورتجلسه</h2><button class="secondary" type="button" onclick="closeApprovalModal()">×</button></div>
+    <label for="approvalChoice">وضعیت تأیید</label><select id="approvalChoice" onchange="toggleApprovalDetails()"><option value="pending">در انتظار تأیید</option><option value="approved">تأیید بدون امضا</option><option value="signed">تأیید با امضای دست‌نویس</option></select>
+    <div id="approvalDetails"><label for="approvalMethod">روش تأیید</label><select id="approvalMethod"><option value="شفاهی در جلسه">تأیید شفاهی در جلسه</option><option value="پیام یا ایمیل">پیام یا ایمیل</option><option value="سایر روش‌ها">سایر روش‌ها</option></select>
+    <label for="approvalDate">تاریخ تأیید</label><div class="date-control"><input id="approvalDate" readonly inputmode="none" placeholder="انتخاب از تقویم شمسی" onclick="openCalendar('approvalDate')"></div>
+    <label for="approvalNote">توضیح یا مرجع تأیید (اختیاری)</label><textarea id="approvalNote" placeholder="برای نمونه: تأیید در جلسه، یا شناسه ایمیل"></textarea></div>
+    <p id="approvalSignedHint" class="muted hidden">برای ثبت تأیید با امضا، ابتدا امضا را در صفحه ترسیم امضا ثبت کنید.</p>
+    <div class="modal-buttons"><button class="secondary" type="button" onclick="closeApprovalModal()">انصراف</button><button type="button" onclick="saveApprovalModal()">ذخیره وضعیت</button></div>
+  </section>
+</div>
+<div id="memberOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="ثبت عضو">
+  <section class="modal"><h2 id="memberModalTitle">افزودن عضو</h2>
+    <label for="memberName">نام و نام خانوادگی *</label><input id="memberName" placeholder="نام شخص">
+    <label for="memberRole">سمت</label><input id="memberRole" placeholder="مدیر پروژه">
+    <label for="memberUnit">واحد سازمانی</label><input id="memberUnit" placeholder="فناوری اطلاعات">
+    <div class="modal-buttons"><button type="button" class="secondary" onclick="closeMemberModal()">انصراف</button><button type="button" onclick="saveMemberModal()">ذخیره عضو</button></div>
+  </section>
+</div>
+<div id="memberPickerOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="انتخاب عضو">
+  <section class="modal"><div class="row"><h2 style="flex:1">انتخاب حاضران از دفترچه</h2><button class="secondary" type="button" onclick="closeMemberPicker()">×</button></div>
+    <p class="muted">برای افزودن هر شخص به فهرست حاضران، روی دکمه کنار نام او بزنید.</p><div id="memberPickerList"></div>
+    <button class="secondary" type="button" onclick="closeMemberPicker()">پایان</button>
+  </section>
+</div>
+<div id="previewOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="پیش‌نمایش PDF">
+  <section class="modal preview-modal"><div class="row"><h2 style="flex:1">پیش‌نمایش صورتجلسه رسمی</h2><button class="secondary" type="button" onclick="closePreview()">×</button></div>
+    <p class="muted">نمای تقریبی سند نهایی؛ شکست صفحات ممکن است در چاپ اندروید متفاوت باشد.</p>
+    <div class="preview-document"><div id="previewBody" class="doc-page"></div></div>
+    <div class="modal-buttons"><button class="secondary" type="button" onclick="closePreview()">بازگشت به ویرایش</button><button class="gold" type="button" onclick="exportPDF()">خروجی PDF</button></div>
+  </section>
+</div>
+<script>
+'use strict';
+const KEY='pejvak_meetings_v1'; // Preserve data created with older versions.
+const DRAFT_KEY='pejvak_unsaved_draft_v12';
+const MEMBERS_KEY='pejvak_members_v12';
+
+const ids=['number','date','title','start','end','location','attendees','agenda','summary','next','author'];
+const el=id=>document.getElementById(id);
+let editing=null, taskEditing=-1, tasks=[], signatures={}, signaturePerson=null, canvasHasInk=false;
+let approvalPerson=null, memberEditing=null, draftTimer=null, lastCommittedSignature='';
+const uniqueId=prefix=>prefix+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
+const monthNames=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+const weekNames=['ش','ی','د','س','چ','پ','ج'];
+const fa=n=>String(n).replace(/[0-9]/g,c=>'۰۱۲۳۴۵۶۷۸۹'[Number(c)]);
+const ascii=s=>String(s||'').replace(/[۰-۹]/g,c=>String('۰۱۲۳۴۵۶۷۸۹'.indexOf(c))).replace(/[٠-٩]/g,c=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(c)));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const dateFmt=new Intl.DateTimeFormat('en-US-u-ca-persian-nu-latn',{year:'numeric',month:'numeric',day:'numeric',timeZone:'Asia/Tehran'});
+const persianParts=d=>{const parts={};dateFmt.formatToParts(d).forEach(p=>{if(['year','month','day'].includes(p.type))parts[p.type]=Number(ascii(p.value))});return {year:parts.year,month:parts.month,day:parts.day}};
+const persianText=(y,m,d)=>`${y}/${pad(m)}/${pad(d)}`;
+let calTarget=null, calYear=0, calMonth=0;
+const yearDaysCache=new Map();
+function daysForYear(year){
+  if(yearDaysCache.has(year))return yearDaysCache.get(year);
+  const grouped=Array.from({length:12},()=>[]);
+  const start=Date.UTC(year+621,2,15,12);
+  for(let i=0;i<377;i++){
+    const date=new Date(start+i*86400000),p=persianParts(date);
+    if(p.year===year && p.month>=1 && p.month<=12)grouped[p.month-1].push({day:p.day,weekday:(date.getUTCDay()+1)%7});
+  }
+  yearDaysCache.set(year,grouped);
+  return grouped;
+}
+function openCalendar(target){
+  calTarget=target;
+  const current=ascii(el(target).value).match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+  const today=persianParts(new Date());
+  calYear=current?Number(current[1]):today.year;
+  calMonth=current?Number(current[2]):today.month;
+  if(calMonth<1||calMonth>12){calYear=today.year;calMonth=today.month}
+  el('calendarOverlay').classList.remove('hidden');renderCalendar();
+}
+function renderCalendar(){
+  el('calendarTitle').textContent=`${monthNames[calMonth-1]} ${fa(calYear)}`;
+  const days=daysForYear(calYear)[calMonth-1]||[];
+  const today=persianParts(new Date());
+  const selected=calTarget?ascii(el(calTarget).value):'';
+  const grid=el('calendarGrid');grid.innerHTML='';
+  weekNames.forEach(x=>{const span=document.createElement('span');span.className='weekday';span.textContent=x;grid.append(span)});
+  for(let i=0;i<(days[0]?.weekday||0);i++){const blank=document.createElement('span');blank.className='day emptyday';grid.append(blank)}
+  days.forEach(({day})=>{
+    const btn=document.createElement('button');btn.type='button';btn.className='day';btn.textContent=fa(day);
+    const value=persianText(calYear,calMonth,day);
+    if(value===selected)btn.classList.add('selected');
+    if(calYear===today.year&&calMonth===today.month&&day===today.day)btn.classList.add('today');
+    btn.onclick=()=>{if(calTarget){el(calTarget).value=value;notifyDateChanged(calTarget)}closeCalendar()};grid.append(btn);
+  });
+}
+function changeCalendarMonth(amount){calMonth+=amount;if(calMonth===13){calMonth=1;calYear++}if(calMonth===0){calMonth=12;calYear--}renderCalendar()}
+function closeCalendar(){el('calendarOverlay').classList.add('hidden');calTarget=null}
+function clearSelectedDate(){if(calTarget){el(calTarget).value='';notifyDateChanged(calTarget)}closeCalendar()}
+function pickToday(){const t=persianParts(new Date());if(calTarget){el(calTarget).value=persianText(t.year,t.month,t.day);notifyDateChanged(calTarget)}closeCalendar()}
+function data(){try{const v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v:[]}catch{return []}}
+function show(tab){
+  if(tab!=='form'&&!el('form').classList.contains('hidden'))persistDraft();
+  const valid=['dashboard','form','tracking','members','archive','backup'];
+  valid.forEach(x=>el(x).classList.toggle('hidden',x!==tab));
+  document.querySelectorAll('nav.actions button').forEach(b=>b.classList.remove('nav-current'));
+  if(tab==='dashboard')renderDashboard();
+  if(tab==='tracking')renderTracking();
+  if(tab==='members')renderMembers();
+  if(tab==='archive')renderArchive();
+  window.scrollTo(0,0);
+}
+function todayJalali(){const p=persianParts(new Date());return persianText(p.year,p.month,p.day)}
+function taskOverdue(t){return !!(t.deadline&&ascii(t.deadline)<todayJalali()&&t.status!=='انجام‌شده')}
+function normalizedTasks(items,meetingId){return (Array.isArray(items)?items:[]).map((t,i)=>({id:t.id||meetingId+':legacy:'+i,text:t.text||'',owner:t.owner||'',deadline:t.deadline||'',status:t.status||'انجام‌نشده'}))}
+function meetingTasks(){return data().flatMap(m=>normalizedTasks(m.tasks,m.id).map(t=>({meeting:m,task:t})))}
+function renderDashboard(){
+  const all=data(),items=meetingTasks(),open=items.filter(x=>x.task.status!=='انجام‌شده'),late=open.filter(x=>taskOverdue(x.task));
+  const stats=[['کل جلسات',all.length],['مصوبات باز',open.length],['اقدامات انجام‌شده',items.length-open.length],['تأخیردار',late.length]];
+  el('dashboardStats').innerHTML=stats.map(([name,count])=>`<div class="stat-card"><b>${fa(count)}</b><small>${name}</small></div>`).join('');
+  const pending=open.sort((a,b)=>Number(taskOverdue(b.task))-Number(taskOverdue(a.task))||(a.task.deadline||'9999').localeCompare(b.task.deadline||'9999')).slice(0,5);
+  el('dashboardTasks').innerHTML=pending.map(({task,meeting})=>`<div class="item"><strong>${esc(task.text)}</strong><p>${esc(meeting.title)} · ${esc(task.owner||'مسئول نامشخص')} · ${esc(fa(task.deadline||'بدون مهلت'))}</p><span class="pill ${taskOverdue(task)?'overdue':'pending'}">${taskOverdue(task)?'تأخیردار':esc(task.status)}</span></div>`).join('')||'<div class="empty">مصوبه باز وجود ندارد.</div>';
+  const root=el('dashboardRecent');root.innerHTML='';
+  all.slice().sort((a,b)=>String(b.updated||'').localeCompare(String(a.updated||''))).slice(0,5).forEach(m=>{
+    const node=document.createElement('div');node.className='item';node.innerHTML=`<div class="row"><strong>${esc(m.title)}</strong><span class="muted">${esc(fa(m.date||''))}</span></div>`;
+    const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='بازکردن جلسه';b.onclick=()=>load(m.id);node.append(b);root.append(node);
+  });
+  if(!all.length)root.innerHTML='<div class="empty">هنوز جلسه‌ای ذخیره نشده است. از «جلسه جدید» شروع کنید.</div>';
+}
+function renderTracking(){
+  const filter=el('taskFilter').value,root=el('trackingItems');root.innerHTML='';
+  const items=meetingTasks().filter(({task})=>filter==='all'||filter==='open'&&task.status!=='انجام‌شده'||filter==='done'&&task.status==='انجام‌شده'||filter==='late'&&taskOverdue(task));
+  if(!items.length){root.innerHTML='<div class="empty">مصوبه‌ای با این فیلتر وجود ندارد.</div>';return}
+  items.sort((a,b)=>Number(taskOverdue(b.task))-Number(taskOverdue(a.task)));
+  items.forEach(({meeting,task})=>{
+    const node=document.createElement('div');node.className='item';
+    node.innerHTML=`<strong>${esc(task.text)}</strong><p>جلسه: ${esc(meeting.title)} · مسئول: ${esc(task.owner||'—')} · مهلت: ${esc(fa(task.deadline||'—'))}</p>${taskOverdue(task)?'<span class="pill overdue">تأخیردار</span>':''}`;
+    const controls=document.createElement('div');controls.className='inline-controls';
+    const select=document.createElement('select');select.setAttribute('aria-label','وضعیت مصوبه');
+    ['انجام‌نشده','در حال انجام','انجام‌شده'].forEach(st=>{const opt=document.createElement('option');opt.value=opt.textContent=st;select.append(opt)});select.value=task.status;
+    select.onchange=()=>changeTaskStatus(meeting.id,task.id,select.value);
+    const openBtn=document.createElement('button');openBtn.type='button';openBtn.className='secondary';openBtn.textContent='بازکردن جلسه';openBtn.onclick=()=>load(meeting.id);
+    controls.append(select,openBtn);node.append(controls);root.append(node);
+  });
+}
+function changeTaskStatus(meetingId,taskId,status){
+  const all=data(),i=all.findIndex(m=>m.id===meetingId);if(i<0)return;
+  all[i].tasks=normalizedTasks(all[i].tasks,meetingId).map(t=>t.id===taskId?{...t,status}:t);
+  all[i].updated=new Date().toISOString();
+  try{localStorage.setItem(KEY,JSON.stringify(all))}catch(err){alert('ذخیره وضعیت انجام نشد: '+err.message);renderTracking();return}
+  if(editing===meetingId){const hadDraft=!!readDraft();tasks=tasks.map(t=>t.id===taskId?{...t,status}:t);renderTasks();if(hadDraft)scheduleDraftSave();else lastCommittedSignature=JSON.stringify(gather())}
+  renderTracking();renderDashboard();
+}
+function notifyDateChanged(target){
+  if(target==='approvalDate')return;
+  scheduleDraftSave();
+}
+function renderTasks(){
+  const root=el('tasks');root.innerHTML='';
+  if(!tasks.length){root.innerHTML='<div class="empty">هنوز مصوبه‌ای اضافه نشده است.</div>';return}
+  tasks.forEach((task,i)=>{
+    const node=document.createElement('div');node.className='item';
+    const badge=task.status==='انجام‌شده'?'done':task.status==='در حال انجام'?'progress':'';
+    node.innerHTML=`<div class="row"><strong>${fa(i+1)}. ${esc(task.text||'بدون شرح')}</strong><span class="pill ${badge}">${esc(task.status||'انجام‌نشده')}</span></div><p>${esc([task.owner?'مسئول: '+task.owner:'',task.deadline?'مهلت: '+fa(task.deadline):''].filter(Boolean).join('  ·  '))}</p><div class="item-actions"><button type="button" class="secondary">ویرایش</button><button type="button" class="danger">حذف</button></div>`;
+    const btns=node.querySelectorAll('.item-actions button');btns[0].onclick=()=>openTaskModal(i);btns[1].onclick=()=>{if(confirm('این مصوبه حذف شود؟')){tasks.splice(i,1);renderTasks();scheduleDraftSave()}};
+    root.append(node);
+  });
+}
+function openTaskModal(index=-1){
+  taskEditing=index;const t=index>=0?tasks[index]:{};
+  el('taskText').value=t.text||'';el('taskOwner').value=t.owner||'';el('taskDeadline').value=t.deadline||'';el('taskStatus').value=t.status||'انجام‌نشده';
+  el('taskModalTitle').textContent=index<0?'ثبت مصوبه جدید':'ویرایش مصوبه';el('taskOverlay').classList.remove('hidden');
+}
+function closeTaskModal(){el('taskOverlay').classList.add('hidden');taskEditing=-1;scheduleDraftSave()}
+function saveTaskModal(){
+  const t={text:el('taskText').value.trim(),owner:el('taskOwner').value.trim(),deadline:el('taskDeadline').value.trim(),status:el('taskStatus').value};
+  if(!t.text){alert('شرح مصوبه را وارد کنید');return}
+  t.id=taskEditing>=0?tasks[taskEditing].id:uniqueId('task');
+  if(taskEditing>=0)tasks[taskEditing]=t;else tasks.push(t);
+  closeTaskModal();renderTasks();scheduleDraftSave();
+}
+function normalName(v){return String(v||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('fa')}
+function attendeesList(){
+  return el('attendees').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(line=>{
+    const parts=line.split(/\s+[-–—|]\s+/,2);return {key:'att:'+normalName(line),name:parts[0].trim(),role:(parts[1]||'شرکت‌کننده').trim()};
+  });
+}
+function signerList(){
+  const people=attendeesList(),seen=new Set(people.map(x=>normalName(x.name)));
+  const author=el('author').value.trim();
+  if(author&&!seen.has(normalName(author)))people.push({key:'author:'+normalName(author),name:author,role:'تنظیم‌کننده صورتجلسه'});
+  Object.keys(signatures).filter(k=>k.startsWith('custom:')).forEach(k=>{const x=signatures[k];if(x&&x.name)people.push({key:k,name:x.name,role:x.role||'امضاکننده'})});
+  const used=new Set();return people.filter(p=>{if(used.has(p.key))return false;used.add(p.key);return true});
+}
+function approvalLabel(person){
+  const entry=signatures[person.key]||{};
+  if(entry.image)return 'تأیید با امضا';
+  if(entry.approvalStatus==='approved')return 'تأیید بدون امضا ('+(entry.approvalMethod||'روش نامشخص')+')';
+  return 'در انتظار تأیید';
+}
+function renderSigners(){
+  const root=el('signers');root.innerHTML='';const people=signerList();
+  if(!people.length){root.innerHTML='<div class="empty">برای ثبت امضا یا تأیید، نام افراد را در بخش حاضران یا تنظیم‌کننده وارد کنید.</div>';return}
+  people.forEach(person=>{
+    const signed=signatures[person.key]?.image;
+    const item=document.createElement('div');item.className='sig-person';
+    const details=document.createElement('div');details.style.flex='1';
+    details.innerHTML=`<b>${esc(person.name)}</b><span class="muted">${esc(person.role)} · ${esc(approvalLabel(person))}</span>`;
+    const controls=document.createElement('div');controls.className='inline-controls';
+    const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent=signed?'ویرایش امضا':'✍ ثبت امضا';button.onclick=()=>openSignature(person);
+    const approve=document.createElement('button');approve.type='button';approve.className='outline';approve.textContent='وضعیت تأیید';approve.onclick=()=>openApprovalModal(person);
+    controls.append(button,approve);
+    if(signed&&/^data:image\/png;base64,/.test(signed)){const thumb=document.createElement('img');thumb.className='sig-thumb';thumb.src=signed;thumb.alt='امضای ثبت‌شده';item.append(thumb)}
+    item.append(details,controls);
+    if(person.key.startsWith('custom:')){const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='×';del.onclick=()=>{if(confirm('این امضاکننده حذف شود؟')){delete signatures[person.key];renderSigners();scheduleDraftSave()}};item.append(del)}
+    root.append(item);
+  });
+}
+function addCustomSigner(){
+  const name=prompt('نام امضاکننده را وارد کنید:');if(!name||!name.trim())return;
+  const role=prompt('سمت یا نقش (اختیاری):')||'امضاکننده';
+  const key=uniqueId('custom:');
+  signatures[key]={name:name.trim(),role:role.trim(),image:'',signedAt:'',approvalStatus:'pending'};renderSigners();scheduleDraftSave();
+}
+function openApprovalModal(person){
+  approvalPerson=person;const entry=signatures[person.key]||{};
+  el('approvalPersonName').textContent='وضعیت تأیید: '+person.name;
+  el('approvalChoice').value=entry.image?'signed':entry.approvalStatus==='approved'?'approved':'pending';
+  el('approvalMethod').value=entry.approvalMethod||'شفاهی در جلسه';
+  el('approvalDate').value=entry.approvalDate||todayJalali();
+  el('approvalNote').value=entry.approvalNote||'';
+  toggleApprovalDetails();el('approvalOverlay').classList.remove('hidden');
+}
+function toggleApprovalDetails(){
+  const mode=el('approvalChoice').value;
+  el('approvalDetails').classList.toggle('hidden',mode!=='approved');
+  el('approvalSignedHint').classList.toggle('hidden',mode!=='signed');
+}
+function closeApprovalModal(){approvalPerson=null;el('approvalOverlay').classList.add('hidden')}
+function saveApprovalModal(){
+  if(!approvalPerson)return;
+  const p=approvalPerson,prior=signatures[p.key]||{};
+  const status=el('approvalChoice').value;
+  if(status==='signed'&&!prior.image){alert('برای تأیید با امضا، ابتدا امضای واقعی این فرد را ثبت کنید.');return}
+  if(status!=='signed'&&prior.image&&!confirm('امضای ثبت‌شده حذف می‌شود. ادامه می‌دهید؟'))return;
+  const entry={...prior,name:p.name,role:p.role,image:status==='signed'?prior.image:'',
+    signedAt:status==='signed'?prior.signedAt:'',approvalStatus:status,
+    approvalMethod:status==='approved'?el('approvalMethod').value:'',
+    approvalDate:status==='approved'?el('approvalDate').value:'',
+    approvalNote:status==='approved'?el('approvalNote').value.trim():'',
+    approvedAt:status==='approved'?new Date().toISOString():status==='signed'?prior.approvedAt||prior.signedAt:''};
+  if(status==='approved'&&!entry.approvalDate){alert('تاریخ تأیید را انتخاب کنید');return}
+  signatures[p.key]=entry;closeApprovalModal();renderSigners();scheduleDraftSave();
+}
+const canvas=el('signatureCanvas'),ctx=canvas.getContext('2d');
+let drawing=false,lastPoint=null;
+function clearCanvas(){ctx.clearRect(0,0,canvas.width,canvas.height);canvasHasInk=false}
+function canvasPoint(event){const r=canvas.getBoundingClientRect();return {x:(event.clientX-r.left)*canvas.width/r.width,y:(event.clientY-r.top)*canvas.height/r.height}}
+function inkStart(event){event.preventDefault();drawing=true;const p=canvasPoint(event);lastPoint=p;ctx.fillStyle='#0a315a';ctx.beginPath();ctx.arc(p.x,p.y,2.7,0,Math.PI*2);ctx.fill();canvasHasInk=true;try{canvas.setPointerCapture(event.pointerId)}catch(e){}}
+function inkMove(event){if(!drawing)return;event.preventDefault();const p=canvasPoint(event);ctx.strokeStyle='#0a315a';ctx.lineWidth=5.2;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(lastPoint.x,lastPoint.y);ctx.lineTo(p.x,p.y);ctx.stroke();lastPoint=p}
+function inkEnd(event){drawing=false;lastPoint=null;try{canvas.releasePointerCapture(event.pointerId)}catch(e){}}
+canvas.addEventListener('pointerdown',inkStart);canvas.addEventListener('pointermove',inkMove);canvas.addEventListener('pointerup',inkEnd);canvas.addEventListener('pointercancel',inkEnd);
+function openSignature(person){
+  signaturePerson=person;el('signatureName').textContent=person.name+' — '+person.role;el('signatureOverlay').classList.remove('hidden');clearCanvas();
+  const image=signatures[person.key]?.image;
+  if(image&&/^data:image\/png;base64,/.test(image)){
+    const img=new Image();img.onload=()=>{if(signaturePerson?.key===person.key){ctx.drawImage(img,0,0,canvas.width,canvas.height);canvasHasInk=true}};img.src=image;
+  }
+}
+function closeSignature(){el('signatureOverlay').classList.add('hidden');signaturePerson=null;drawing=false}
+function confirmSignature(){
+  if(!signaturePerson)return;
+  if(!canvasHasInk){alert('ابتدا در کادر سفید امضا کنید');return}
+  const p=signaturePerson;
+  signatures[p.key]={...signatures[p.key],name:p.name,role:p.role,image:canvas.toDataURL('image/png'),signedAt:new Date().toISOString(),approvalStatus:'signed',approvalMethod:'',approvalNote:'',approvedAt:new Date().toISOString()};
+  closeSignature();renderSigners();scheduleDraftSave();
+}
+function removeSignature(){
+  if(!signaturePerson)return;
+  if(!confirm('امضای این فرد حذف شود؟'))return;
+  const prev=signatures[signaturePerson.key];
+  signatures[signaturePerson.key]={...prev,name:signaturePerson.name,role:signaturePerson.role,image:'',signedAt:'',approvalStatus:'pending',approvedAt:''};
+  closeSignature();renderSigners();scheduleDraftSave();
+}
+function gather(){const d={};ids.forEach(id=>d[id]=el(id).value.trim());d.tasks=tasks.filter(t=>t.text).map(t=>({...t}));d.signatures=JSON.parse(JSON.stringify(signatures));return d}
+function setSaveStatus(message){el('autosaveStatus').textContent=message}
+function inProgressTask(){
+  if(el('taskOverlay').classList.contains('hidden'))return null;
+  return {index:taskEditing,text:el('taskText').value,owner:el('taskOwner').value,
+    deadline:el('taskDeadline').value,status:el('taskStatus').value};
+}
+function persistDraft(){
+  if(draftTimer){clearTimeout(draftTimer);draftTimer=null}
+  const d=gather(),pendingTask=inProgressTask();const meaningful=ids.some(id=>d[id])||d.tasks.length||Object.keys(d.signatures).length||!!(pendingTask&&(pendingTask.text||pendingTask.owner));
+  if(editing&&!pendingTask&&JSON.stringify(d)===lastCommittedSignature){localStorage.removeItem(DRAFT_KEY);setSaveStatus('✓ همه تغییرات ذخیره شده‌اند');return}
+  if(!meaningful&&!editing){localStorage.removeItem(DRAFT_KEY);setSaveStatus('پیش‌نویسی وجود ندارد.');return}
+  try{localStorage.setItem(DRAFT_KEY,JSON.stringify({editing,snapshot:d,taskModal:pendingTask,storedAt:new Date().toISOString()}));
+    setSaveStatus('✓ پیش‌نویس روی این دستگاه ذخیره شد');}
+  catch(e){setSaveStatus('⚠ ذخیره خودکار ناموفق بود؛ فضای ذخیره را بررسی کنید')}
+}
+function scheduleDraftSave(){
+  setSaveStatus('در حال ذخیره خودکار…');if(draftTimer)clearTimeout(draftTimer);
+  draftTimer=setTimeout(persistDraft,600);
+}
+function applySnapshot(d,meetingId){
+  editing=meetingId||null;
+  ids.forEach(id=>el(id).value=d[id]||'');
+  tasks=normalizedTasks(d.tasks,meetingId||'draft');
+  signatures=(d.signatures&&typeof d.signatures==='object'&&!Array.isArray(d.signatures))?JSON.parse(JSON.stringify(d.signatures)):{};
+  renderTasks();renderSigners();
+}
+function save(){
+  persistDraft();const d=gather();if(!d.title){alert('عنوان جلسه را وارد کنید');return false}
+  const all=data();d.id=editing||uniqueId('meeting');d.updated=new Date().toISOString();
+  const i=all.findIndex(x=>x.id===d.id);if(i>=0)all[i]=d;else all.unshift(d);
+  try{localStorage.setItem(KEY,JSON.stringify(all));editing=d.id;lastCommittedSignature=JSON.stringify(gather());localStorage.removeItem(DRAFT_KEY);setSaveStatus('✓ صورتجلسه ذخیره شد');alert('صورتجلسه با موفقیت ذخیره شد');return true}
+  catch(e){alert('فضای ذخیره‌سازی کافی نیست. از جلسات پشتیبان بگیرید. جزئیات: '+e.message);return false}
+}
+function clearForm(){
+  const meaningful=ids.some(id=>el(id).value.trim())||tasks.length||Object.keys(signatures).length;
+  if(meaningful&&!confirm('فرم جدید باز شود؟ پیش‌نویس فعلی پاک می‌شود. اگر اطلاعات را لازم دارید، ابتدا صورتجلسه را ذخیره کنید.'))return;
+  if(draftTimer)clearTimeout(draftTimer);
+  localStorage.removeItem(DRAFT_KEY);
+  applySnapshot({},null);lastCommittedSignature='';setSaveStatus('پیش‌نویس جدید آماده است.');show('form');
+}
+function load(id){
+  const d=data().find(x=>x.id===id);if(!d)return;
+  const draft=readDraft();
+  if(draft&&draft.editing!==id&&!confirm('پیش‌نویس فعلی با بازکردن این جلسه جایگزین می‌شود. ادامه می‌دهید؟'))return;
+  applySnapshot(d,d.id);lastCommittedSignature=JSON.stringify(gather());localStorage.removeItem(DRAFT_KEY);setSaveStatus('صورتجلسه بارگذاری شد. تغییرات به‌صورت پیش‌نویس ذخیره می‌شوند.');show('form');
+}
+function readDraft(){try{return JSON.parse(localStorage.getItem(DRAFT_KEY)||'null')}catch{return null}}
+function recoverDraft(){
+  const draft=readDraft();if(draft&&draft.snapshot&&typeof draft.snapshot==='object'){
+    applySnapshot(draft.snapshot,draft.editing);lastCommittedSignature='';
+    setSaveStatus('✓ پیش‌نویس ذخیره‌شده قبلی بازیابی شد. برای ثبت نهایی «ذخیره صورتجلسه» را بزنید.');show('form');
+    if(draft.taskModal){
+      const t=draft.taskModal;openTaskModal(t.index>=0?t.index:-1);
+      el('taskText').value=t.text||'';el('taskOwner').value=t.owner||'';
+      el('taskDeadline').value=t.deadline||'';el('taskStatus').value=t.status||'انجام‌نشده';
+    }
+    return true;
+  }
+  return false;
+}
+function membersData(){try{const items=JSON.parse(localStorage.getItem(MEMBERS_KEY)||'[]');return Array.isArray(items)?items:[]}catch{return []}}
+function saveMembers(items){try{localStorage.setItem(MEMBERS_KEY,JSON.stringify(items));return true}catch(err){alert('خطا در ذخیره دفترچه: '+err.message);return false}}
+function renderMembers(){
+  const list=el('membersList');list.innerHTML='';const q=el('memberSearch').value.trim();
+  const members=membersData().filter(m=>[m.name,m.role,m.unit].join(' ').includes(q));
+  if(!members.length){list.innerHTML='<div class="empty">عضوی پیدا نشد.</div>';return}
+  members.forEach(m=>{
+    const row=document.createElement('div');row.className='item member-entry';
+    row.innerHTML=`<div><strong>${esc(m.name)}</strong><p>${esc([m.role,m.unit].filter(Boolean).join(' · ')||'بدون سمت')}</p></div>`;
+    const controls=document.createElement('div');controls.className='inline-controls';
+    const editBtn=document.createElement('button');editBtn.className='secondary';editBtn.textContent='ویرایش';editBtn.onclick=()=>openMemberModal(m.id);
+    const delBtn=document.createElement('button');delBtn.className='danger';delBtn.textContent='حذف';delBtn.onclick=()=>{if(confirm('عضو از دفترچه حذف شود؟ صورتجلسه‌های قبلی تغییر نمی‌کنند.')){if(saveMembers(membersData().filter(x=>x.id!==m.id)))renderMembers()}};
+    controls.append(editBtn,delBtn);row.append(controls);list.append(row);
+  });
+}
+function openMemberModal(id=null){
+  memberEditing=id;const m=membersData().find(x=>x.id===id)||{};
+  el('memberModalTitle').textContent=id?'ویرایش عضو':'افزودن عضو';
+  el('memberName').value=m.name||'';el('memberRole').value=m.role||'';el('memberUnit').value=m.unit||'';
+  el('memberOverlay').classList.remove('hidden');
+}
+function closeMemberModal(){memberEditing=null;el('memberOverlay').classList.add('hidden')}
+function saveMemberModal(){
+  const name=el('memberName').value.trim();if(!name){alert('نام عضو را وارد کنید');return}
+  const members=membersData();const existing=members.find(x=>x.id===memberEditing);
+  const m={id:memberEditing||uniqueId('member'),name,role:el('memberRole').value.trim(),unit:el('memberUnit').value.trim()};
+  if(!existing&&members.some(x=>normalName(x.name)===normalName(name))){alert('این نام قبلاً در دفترچه ثبت شده است');return}
+  if(existing)members[members.indexOf(existing)]=m;else members.push(m);
+  if(saveMembers(members)){closeMemberModal();renderMembers()}
+}
+function openMemberPicker(){renderMemberPicker();el('memberPickerOverlay').classList.remove('hidden')}
+function closeMemberPicker(){el('memberPickerOverlay').classList.add('hidden')}
+function renderMemberPicker(){
+  const root=el('memberPickerList');root.innerHTML='';const members=membersData();
+  if(!members.length){root.innerHTML='<div class="empty">دفترچه خالی است. از بخش «دفترچه اعضا» اشخاص را تعریف کنید.</div>';return}
+  members.forEach(m=>{
+    const present=attendeesList().some(x=>normalName(x.name)===normalName(m.name));
+    const row=document.createElement('div');row.className='item member-entry';row.innerHTML=`<div><strong>${esc(m.name)}</strong><p>${esc([m.role,m.unit].filter(Boolean).join(' · '))}</p></div>`;
+    const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.disabled=present;btn.textContent=present?'اضافه شده':'افزودن به جلسه';
+    btn.onclick=()=>{const line=m.name+(m.role?' - '+m.role:'');const existing=el('attendees').value.trim();el('attendees').value=existing?existing+'\n'+line:line;renderSigners();scheduleDraftSave();renderMemberPicker()};
+    row.append(btn);root.append(row);
+  });
+}
+function renderArchive(){
+  const q=el('search').value.trim(),all=data().filter(x=>[x.title,x.number,x.date].join(' ').includes(q));
+  const root=el('archiveItems');root.innerHTML='';if(!all.length){root.innerHTML='<div class="empty">صورتجلسه‌ای پیدا نشد.</div>';return}
+  all.forEach(d=>{const node=document.createElement('div');node.className='item';node.innerHTML=`<strong>${esc(d.title)}</strong><p class="muted">${esc(fa(d.date||'بدون تاریخ'))} · ${esc(d.number||'بدون شماره')}</p>`;
+    const actions=document.createElement('div');actions.className='item-actions';
+    const edit=document.createElement('button');edit.textContent='مشاهده و ویرایش';edit.onclick=()=>load(d.id);
+    const del=document.createElement('button');del.className='danger';del.textContent='حذف';del.onclick=()=>{if(confirm('این صورتجلسه حذف شود؟')){localStorage.setItem(KEY,JSON.stringify(data().filter(x=>x.id!==d.id)));if(editing===d.id){editing=null;localStorage.removeItem(DRAFT_KEY)}renderArchive()}};
+    actions.append(edit,del);node.append(actions);root.append(node)});
+}
+function documentMarkup(d){
+  const rows=d.tasks.map((t,i)=>`<tr><td>${fa(i+1)}</td><td>${esc(t.text)}</td><td>${esc(t.owner||'—')}</td><td>${esc(fa(t.deadline||'—'))}</td><td>${esc(t.status||'انجام‌نشده')}</td></tr>`).join('');
+  const signBlocks=signerList().map(p=>{
+    const entry=signatures[p.key]||{},img=entry.image;
+    const src=typeof img==='string'&&/^data:image\/png;base64,[a-zA-Z0-9+/=]+$/.test(img)?img:'';
+    let status='در انتظار تأیید';
+    if(src)status='تأیید با امضای دست‌نویس';
+    else if(entry.approvalStatus==='approved')status='تأیید بدون امضا — '+esc(entry.approvalMethod||'روش نامشخص')+(entry.approvalDate?' — '+esc(fa(entry.approvalDate)):'')+(entry.approvalNote?' — '+esc(entry.approvalNote):'');
+    return `<div class="print-sign"><strong>${esc(p.name)}</strong> <span style="font-size:9px;color:#536a80">(${esc(p.role)})</span><div style="font-size:10px;color:#3d596e;margin-top:5px">${status}</div>${src?`<img src="${src}" alt="امضای ثبت‌شده">`:entry.approvalStatus==='approved'?'':'<div class="sign-dotted"></div>'}</div>`;
+  }).join('');
+  return `<div class="phead"><div><h1>صورتجلسه رسمی</h1><strong>شرکت داده گستران پژواک آریا</strong></div><img src="logo.png" alt="لوگوی پژواک"></div>
+    <table><tr><th>عنوان جلسه</th><td colspan="3">${esc(d.title)}</td></tr><tr><th>شماره</th><td>${esc(d.number)}</td><th>تاریخ</th><td>${esc(fa(d.date))}</td></tr><tr><th>زمان</th><td>${esc(d.start)} تا ${esc(d.end)}</td><th>محل</th><td>${esc(d.location)}</td></tr></table>
+    <h2>حاضران</h2><p>${esc(d.attendees||'—')}</p><h2>دستور جلسه</h2><p>${esc(d.agenda||'—')}</p><h2>خلاصه مذاکرات</h2><p>${esc(d.summary||'—')}</p>
+    <h2>مصوبات و اقدامات</h2><table><thead><tr><th>ردیف</th><th>شرح مصوبه</th><th>مسئول</th><th>مهلت</th><th>وضعیت</th></tr></thead><tbody>${rows||'<tr><td colspan="5">موردی ثبت نشده است.</td></tr>'}</tbody></table>
+    <h2>جلسه بعدی</h2><p>${esc(fa(d.next||'—'))}</p><h2>امضاها و وضعیت تأیید</h2><div class="print-sign-grid">${signBlocks||'<p>شخصی تعریف نشده است.</p>'}</div>`;
+}
+function previewDocument(){
+  const d=gather();if(!d.title){alert('برای پیش‌نمایش، عنوان جلسه را وارد کنید');return}
+  el('previewBody').innerHTML=documentMarkup(d);el('previewOverlay').classList.remove('hidden');
+}
+function closePreview(){el('previewOverlay').classList.add('hidden')}
+async function exportPDF(){
+  const d=gather();if(!d.title){alert('عنوان جلسه را وارد کنید');return}
+  persistDraft();
+  el('printArea').classList.add('doc-page');el('printArea').innerHTML=documentMarkup(d);
+  // Wait until embedded signature images are fully decoded.
+  const images=[...el('printArea').querySelectorAll('img')];
+  await Promise.race([Promise.all(images.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.onload=resolve;img.onerror=resolve}))),new Promise(resolve=>setTimeout(resolve,1800))]);
+  await new Promise(resolve=>setTimeout(resolve,120));
+  if(window.PejvakAndroid&&typeof window.PejvakAndroid.printDocument==='function')window.PejvakAndroid.printDocument();else window.print();
+}
+function backup(){
+  persistDraft();const json=JSON.stringify({app:'PEJVAK Minutes',version:3,meetings:data(),members:membersData(),draft:readDraft()},null,2);
+  if(window.PejvakAndroid&&typeof window.PejvakAndroid.saveBackup==='function'){window.PejvakAndroid.saveBackup(json);return}
+  const blob=new Blob([json],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='pejvak-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+// Android WebView may expose selected content:// files as empty File objects.
+// On Android, the Java bridge reads the user-selected document via ContentResolver.
+function chooseRestore(){
+  if(window.PejvakAndroid && typeof window.PejvakAndroid.openRestorePicker==='function'){
+    window.PejvakAndroid.openRestorePicker();
+  }else{
+    el('restore').click();
+  }
+}
+function restoreBackupText(text){
+  if(typeof text!=='string'||!text.trim()) throw Error('فایل انتخاب‌شده خالی است یا خواندن آن ناموفق بود');
+  const obj=JSON.parse(text);
+  if(obj.app!=='PEJVAK Minutes'||!Array.isArray(obj.meetings)||!obj.meetings.every(m=>m&&typeof m==='object'&&typeof m.title==='string'&&typeof m.id==='string')){
+    throw Error('ساختار فایل پشتیبان معتبر نیست');
+  }
+  if(!confirm('اطلاعات فعلی با فایل پشتیبان جایگزین شوند؟'))return;
+  // Validate before committing: imported v2 files have meetings/signatures but no members/draft.
+  const allMeetings=JSON.stringify(obj.meetings);
+  const allMembers=JSON.stringify(Array.isArray(obj.members)?obj.members:membersData());
+  const draft=JSON.stringify(obj.draft&&obj.draft.snapshot?obj.draft:null);
+  localStorage.setItem(KEY,allMeetings);
+  localStorage.setItem(MEMBERS_KEY,allMembers);
+  if(draft!=='null')localStorage.setItem(DRAFT_KEY,draft);else localStorage.removeItem(DRAFT_KEY);
+  alert('بازیابی انجام شد: '+obj.meetings.length+' صورتجلسه');
+  editing=null;show('archive');
+}
+async function restoreFile(e){
+  const file=e.target.files[0];if(!file)return;
+  try{restoreBackupText(await file.text());}
+  catch(err){alert('خطا در بازیابی: '+err.message)}
+  finally{e.target.value='';}
+}
+let nativeRestoreBase64=null;
+window.pejvakNativeRestoreStart=function(){nativeRestoreBase64='';};
+window.pejvakNativeRestoreChunk=function(chunk){
+  if(nativeRestoreBase64===null)throw Error('بازیابی آغاز نشده است');
+  nativeRestoreBase64+=chunk;
+};
+window.pejvakNativeRestoreFinish=function(){
+  const encoded=nativeRestoreBase64;nativeRestoreBase64=null;
+  try{
+    if(!encoded)throw Error('فایل انتخاب‌شده خالی است');
+    const binary=atob(encoded);
+    const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+    restoreBackupText(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+  }catch(err){alert('خطا در بازیابی: '+err.message);}
+};
+window.pejvakNativeRestoreError=function(message){
+  nativeRestoreBase64=null;
+  alert('خطا در خواندن فایل: '+message);
+};
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){
+  if(!el('calendarOverlay').classList.contains('hidden'))closeCalendar();
+  else if(!el('previewOverlay').classList.contains('hidden'))closePreview();
+  else if(!el('approvalOverlay').classList.contains('hidden'))closeApprovalModal();
+  else if(!el('memberOverlay').classList.contains('hidden'))closeMemberModal();
+  else if(!el('memberPickerOverlay').classList.contains('hidden'))closeMemberPicker();
+  else if(!el('signatureOverlay').classList.contains('hidden'))closeSignature();
+  else if(!el('taskOverlay').classList.contains('hidden'))closeTaskModal();
+}});
+ids.forEach(id=>{el(id).addEventListener('input',scheduleDraftSave);el(id).addEventListener('change',scheduleDraftSave)});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&(!el('form').classList.contains('hidden')))persistDraft()});
+window.addEventListener('pagehide',()=>{if(!el('form').classList.contains('hidden'))persistDraft()});
+['taskText','taskOwner','taskDeadline','taskStatus'].forEach(id=>{
+  el(id).addEventListener('input',scheduleDraftSave);
+  el(id).addEventListener('change',scheduleDraftSave);
+});
+renderTasks();renderSigners();if(!recoverDraft())show('dashboard');
+</script>
+
+<script>
+// A service worker caches only the application shell; meeting records stay in the browser's own storage.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(err => {
+      console.warn('امکان فعال‌سازی استفاده آفلاین وجود ندارد:', err);
+    });
+  });
+}
+</script>
+</body></html>
