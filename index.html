@@ -86,7 +86,7 @@
       #printArea{display:block!important;border:0;border-radius:0;padding:0;font-family:Vazirmatn,"Segoe UI",Tahoma,Arial,sans-serif;font-size:10pt;line-height:1.7}
       #printArea h2{font-size:12pt}#printArea th,#printArea td{padding:7px}}
 
-/* PEJVAK v1.4 — uploaded offline signatures and remote-sign link */
+/* PEJVAK v1.5 — remote signer invitations / preconfigured sign URL */
 .sig-tools-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .sig-tools-row button{flex:1 1 185px}
 #sigUploadOverlay{z-index:72}
@@ -194,11 +194,13 @@
 </div>
 
 <div id="signLinkOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="لینک صفحه امضای غیرحضوری">
-  <section class="modal"><h2>لینک صفحه PEJVAK Sign</h2>
-    <p class="muted">این صفحه عمومی فقط امکان امضا و دریافت فایل را دارد؛ صورتجلسات محرمانه روی آن منتشر نمی‌شوند. PDF را جداگانه برای شخص بفرستید.</p>
-    <label for="signPageLink">آدرس صفحه امضا</label><input id="signPageLink" dir="ltr" placeholder="https://.../sign.html" style="direction:ltr;text-align:left">
-    <p class="muted">در نسخه وب، آدرس از GitHub Pages به‌صورت خودکار ساخته می‌شود. در اپ اندروید آدرس صفحه منتشرشده را یک‌بار وارد کنید.</p>
-    <div class="modal-buttons"><button type="button" class="secondary" onclick="closeSignLink()">بستن</button><button type="button" class="secondary" onclick="copySignLink()">کپی لینک</button><button type="button" class="gold" onclick="sendSignLink()">اشتراک‌گذاری</button></div>
+  <section class="modal"><h2 id="signLinkTitle">لینک صفحه PEJVAK Sign</h2>
+    <p class="muted" id="signLinkWho">این صفحه فقط برای ترسیم و ارسال فایل امضاست. PDF صورتجلسه را جداگانه و فقط برای فرد مجاز بفرستید.</p>
+    <label for="signPageLink">آدرس اصلی صفحه امضا</label><input id="signPageLink" dir="ltr" placeholder="https://.../sign.html" oninput="updateSignLinkPreview()" style="direction:ltr;text-align:left">
+    <p class="muted">آدرس رسمی PEJVAK Sign از قبل تنظیم شده است. در صورت جابه‌جایی سایت می‌توانید آن را تغییر دهید.</p>
+    <label for="signInvitationPreview">لینک آماده ارسال</label><input id="signInvitationPreview" dir="ltr" readonly style="direction:ltr;text-align:left" aria-label="لینک اختصاصی امضا">
+    <p class="muted">در لینک اختصاصی فقط نام، نقش و شماره جلسه قرار می‌گیرد؛ متن و مصوبات جلسه منتشر نمی‌شوند. فرد باید اطلاعات را بررسی و خودش تأیید کند.</p>
+    <div class="modal-buttons"><button type="button" class="secondary" onclick="closeSignLink()">بستن</button><button type="button" class="secondary" onclick="copySignLink()">کپی لینک</button><button type="button" class="gold" onclick="sendSignLink()">ارسال درخواست امضا</button></div>
   </section>
 </div>
 
@@ -432,7 +434,8 @@ function renderSigners(){
     const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent=signed?'ویرایش امضا':'✍ ثبت امضا';button.onclick=()=>openSignature(person);
     const approve=document.createElement('button');approve.type='button';approve.className='outline';approve.textContent='وضعیت تأیید';approve.onclick=()=>openApprovalModal(person);
     const upload=document.createElement('button');upload.type='button';upload.className='secondary';upload.textContent='📎 بارگذاری امضا';upload.onclick=()=>openSigUpload(person);
-    controls.append(button,upload,approve);
+    const request=document.createElement('button');request.type='button';request.className='secondary';request.textContent='🔗 ارسال درخواست امضا';request.onclick=()=>shareSignatureLink(person);
+    controls.append(button,upload,approve,request);
     if(signed&&/^data:image\/png;base64,/.test(signed)){const thumb=document.createElement('img');thumb.className='sig-thumb';thumb.src=signed;thumb.alt='امضای ثبت‌شده';item.append(thumb)}
     item.append(details,controls);
     if(person.key.startsWith('custom:')){const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='×';del.onclick=()=>{if(confirm('این امضاکننده حذف شود؟')){delete signatures[person.key];renderSigners();scheduleDraftSave()}};item.append(del)}
@@ -511,29 +514,67 @@ let sigUploadPerson=null, sigSourceImage=null, sigSourceMeta=null;
 const sigCanvas=el('sigUploadCanvas'),sigCtx=sigCanvas.getContext('2d',{willReadFrequently:true});
 const SIG_MAX_BYTES=8*1024*1024;
 const SIG_DATA_PATTERN=/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
-function shareSignatureLink(){
-  const stored=localStorage.getItem('pejvak_signpage_url_v14')||'';
-  let url=stored;
-  if(!url && /^https?:$/.test(location.protocol)) url=new URL('sign.html',location.href).href;
-  el('signPageLink').value=url;el('signLinkOverlay').classList.remove('hidden');
+// v1.5: the published sign page is preconfigured, including in offline Android WebView.
+const DEFAULT_SIGN_PAGE_URL='https://hosseinsaeedmesgari-jpg.github.io/pejvak-minutes-web/sign.html';
+let signLinkRecipient=null;
+function configuredSignPageUrl(){
+  const custom=localStorage.getItem('pejvak_signpage_url_v14')||'';
+  // A hosted copy uses its own sign.html unless the organizer has set a custom URL.
+  if(custom)return custom;
+  if(/^https?:$/.test(location.protocol))return new URL('sign.html',location.href).href;
+  return DEFAULT_SIGN_PAGE_URL;
 }
-function closeSignLink(){el('signLinkOverlay').classList.add('hidden')}
+function shareSignatureLink(person=null){
+  if(person && !el('number').value.trim()){alert('برای ارسال درخواست اختصاصی، ابتدا شماره صورتجلسه را وارد کنید.');el('number').focus();return}
+  signLinkRecipient=person;
+  el('signPageLink').value=configuredSignPageUrl();
+  el('signLinkTitle').textContent=person?'درخواست امضا برای '+person.name:'لینک عمومی PEJVAK Sign';
+  el('signLinkWho').textContent=person
+    ? 'برای '+person.name+' (شماره صورتجلسه: '+el('number').value.trim()+') لینک اختصاصی ساخته می‌شود. ابتدا PDF صورتجلسه را جداگانه و فقط برای خود فرد بفرستید.'
+    : 'صفحه عمومی فقط امکان رسم و ارسال فایل امضا دارد؛ PDF صورتجلسه را جداگانه برای شخص بفرستید.';
+  updateSignLinkPreview();el('signLinkOverlay').classList.remove('hidden');
+}
+function closeSignLink(){el('signLinkOverlay').classList.add('hidden');signLinkRecipient=null}
+function parseSignBase(s,showError=false){
+  let u;try{u=new URL(String(s||'').trim())}catch(e){if(showError)alert('آدرس صفحه امضا معتبر نیست');return null}
+  if(u.protocol!=='https:' && !(u.protocol==='http:'&&/^(localhost|127\.0\.0\.1)$/.test(u.hostname))){if(showError)alert('آدرس صفحه امضا باید HTTPS باشد');return null}
+  if(!u.pathname.endsWith('/sign.html')){if(showError)alert('آدرس باید به فایل sign.html ختم شود');return null}
+  u.search='';u.hash='';return u;
+}
+function invitationUrl(base,person){
+  if(!person)return base.href;
+  // Fragment parameters do not reach GitHub Pages server; no meeting discussion or PDF is included.
+  const params=new URLSearchParams();
+  params.set('name',person.name);params.set('meeting',el('number').value.trim());
+  if(person.role)params.set('role',person.role);
+  return base.href+'#'+params.toString();
+}
+function updateSignLinkPreview(){
+  const base=parseSignBase(el('signPageLink').value,false);
+  el('signInvitationPreview').value=base?invitationUrl(base,signLinkRecipient):'آدرس معتبر وارد کنید';
+}
 function validateSignLink(){
-  let u;try{u=new URL(el('signPageLink').value.trim())}catch(e){alert('آدرس صفحه امضا معتبر نیست');return null}
-  if(u.protocol!=='https:' && !(u.protocol==='http:'&&/^(localhost|127\.0\.0\.1)$/.test(u.hostname))){alert('صفحه امضا باید با HTTPS منتشر شده باشد');return null}
-  if(!u.pathname.endsWith('/sign.html')){alert('آدرس باید به فایل sign.html ختم شود');return null}
-  // No private meeting contents in shared URL.
-  u.search='';u.hash='';localStorage.setItem('pejvak_signpage_url_v14',u.href);return u.href;
+  const u=parseSignBase(el('signPageLink').value,true);if(!u)return null;
+  if(signLinkRecipient&&!el('number').value.trim()){alert('شماره صورتجلسه خالی است');return null}
+  localStorage.setItem('pejvak_signpage_url_v14',u.href);
+  return invitationUrl(u,signLinkRecipient);
+}
+function signRequestMessage(url){
+  if(!signLinkRecipient)return 'صفحه امضای غیرحضوری PEJVAK Sign:\n'+url+'\nلطفاً PDF صورتجلسه را جداگانه مطالعه کنید و در صورت تأیید، فایل امضا را برای تنظیم‌کننده ارسال کنید.';
+  const n=signLinkRecipient.name,number=el('number').value.trim();
+  return 'سلام '+n+'،\nلطفاً صورتجلسه شماره '+number+' را که به‌صورت PDF جداگانه برایتان فرستاده شده مطالعه کنید. در صورت تأیید، در لینک زیر با انگشت یا قلم امضا کرده و فایل تأییدیه را برای من بفرستید:\n'+url+'\nسپاس — PEJVAK Minutes';
 }
 async function copySignLink(){
   const url=validateSignLink();if(!url)return;
-  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(url)}else{window.prompt('لینک را کپی کنید:',url);return}alert('لینک کپی شد')}catch(e){window.prompt('لینک را کپی کنید:',url)}
+  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(url);alert('لینک کپی شد')}else window.prompt('لینک را کپی کنید:',url)}catch(e){window.prompt('لینک را کپی کنید:',url)}
 }
 async function sendSignLink(){
   const url=validateSignLink();if(!url)return;
-  if(window.PejvakAndroid&&typeof window.PejvakAndroid.shareText==='function'){window.PejvakAndroid.shareText('لینک امضای صورتجلسه PEJVAK: '+url);return}
-  try{if(navigator.share){await navigator.share({title:'PEJVAK Sign',text:'لینک امضای صورتجلسه',url});return}}catch(e){if(e.name==='AbortError')return}
-  copySignLink();
+  const message=signRequestMessage(url);
+  if(window.PejvakAndroid&&typeof window.PejvakAndroid.shareText==='function'){window.PejvakAndroid.shareText(message);return}
+  try{if(navigator.share){await navigator.share({title:'درخواست امضای صورتجلسه PEJVAK',text:message});return}}catch(e){if(e.name==='AbortError')return}
+  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(message);alert('متن درخواست و لینک کپی شدند؛ آن را در پیام‌رسان ارسال کنید.');return}}catch(e){}
+  window.prompt('متن درخواست را کپی و ارسال کنید:',message);
 }
 function openSigUpload(person){
   sigUploadPerson=person;sigSourceImage=null;sigSourceMeta=null;

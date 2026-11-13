@@ -1,5 +1,5 @@
-/* PEJVAK Minutes PWA v1.4: application assets only. Never cache meeting data or backup JSON. */
-const CACHE_NAME = 'pejvak-shell-v1.4.0';
+/* PEJVAK Minutes PWA v1.5: application assets only. Never cache meeting data or backup JSON. */
+const CACHE_NAME = 'pejvak-shell-v1.5.0';
 const BASE = new URL('./', self.location.href);
 const ASSETS = ['','index.html','sign.html','logo.png','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png'];
 self.addEventListener('install', event => {

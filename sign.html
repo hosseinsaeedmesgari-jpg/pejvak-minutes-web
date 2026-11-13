@@ -6,6 +6,7 @@
 </style></head><body><header><div><img src="logo.png" alt="لوگوی پژواک"><div><h1>PEJVAK Sign</h1><small>امضای غیرحضوری صورتجلسات داده گستران پژواک آریا</small></div></div></header>
 <main><section class="card"><span class="tag">بدون نصب برنامه و بدون ثبت‌نام</span><h2 style="margin:0 0 9px;font-size:18px">تأیید و ارسال امضا</h2>
 <p class="muted">قبل از امضا، PDF صورتجلسه‌ای را که جداگانه دریافت کرده‌اید مطالعه کنید. این صفحه متن صورتجلسه را از جایی دریافت نمی‌کند و اطلاعات را به سرور ارسال نمی‌کند.</p>
+<p class="privacy" id="invitationHint" hidden>نام و شماره جلسه از لینک دعوت وارد شده‌اند. پیش از امضا، اطلاعات را با PDF دریافتی تطبیق دهید.</p>
 <div class="cols"><div><label for="fullName">نام و نام خانوادگی *</label><input id="fullName" autocomplete="name" placeholder="نام امضاکننده"></div><div><label for="role">سمت (اختیاری)</label><input id="role" placeholder="مدیر پروژه"></div></div>
 <div class="cols"><div><label for="meetingNo">شماره صورتجلسه *</label><input id="meetingNo" placeholder="مثلاً MM-001"></div><div><label for="docVersion">شناسه نسخه سند (اختیاری)</label><input id="docVersion" placeholder="مثلاً v2 یا تاریخ PDF"></div></div>
 <label>با انگشت یا قلم در کادر سفید امضا کنید *</label><canvas id="pad" width="900" height="330" aria-label="کادر کشیدن امضا"></canvas>
@@ -18,6 +19,19 @@
 <script>
 'use strict';
 const el=id=>document.getElementById(id);const pad=el('pad'),ctx=pad.getContext('2d');
+// v1.5 — invitation data is carried in the URL fragment (not sent to the static host).
+function prefillInvitation(){
+  const fragment=location.hash.replace(/^#/, '');if(!fragment)return;
+  const qs=new URLSearchParams(fragment);
+  const fields=[['name','fullName'],['meeting','meetingNo'],['role','role']];let found=false;
+  for(const [param,target] of fields){const value=qs.get(param);if(value && value.length<=180){el(target).value=value;found=true}}
+  if(found)el('invitationHint').hidden=false;
+  // Keep the entered information in the form but remove personal data from URL/address bar.
+  if(found && window.history && typeof history.replaceState==='function'){
+    try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
+  }
+}
+prefillInvitation();
 let drawing=false,ink=false,last=null;
 function point(e){const r=pad.getBoundingClientRect();return{x:(e.clientX-r.left)*pad.width/r.width,y:(e.clientY-r.top)*pad.height/r.height}}
 function down(e){e.preventDefault();drawing=true;last=point(e);ctx.fillStyle='#073765';ctx.beginPath();ctx.arc(last.x,last.y,2.8,0,Math.PI*2);ctx.fill();ink=true;try{pad.setPointerCapture(e.pointerId)}catch(_){}}
